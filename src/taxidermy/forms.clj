@@ -35,23 +35,6 @@
                     (merge field {:data field-value})))]
           (zipmap (map #(keyword (:field-name %)) fields) processed-fields))))))
 
-(defn validate-field
-  [form-values field]
-  (let [validators (:validators field)]
-    (filter (comp not nil?) (map #(% form-values (:value field)) validators))))
-
-(defn validate
-  "Validate each field in the form.  Returns a map with field names as keys and lists of
-   errors as values"
-  [form]
-  (let [form-values (:values form)
-        fields (:fields form)]
-    (reduce (fn [acc field-map] (assoc acc (key field-map) (validate-field form-values (val field-map)))) {} fields)))
-
-(defmacro field-validator [validation-func error-func]
-  `(fn [form-values# field-value#]
-    (if (not (~validation-func form-values# field-value#)) (~error-func))))
-
 (defmacro defform [form-name & options]
   `(defn ~form-name [values#]
     (make-form ~(keyword form-name) values# ~@options)))

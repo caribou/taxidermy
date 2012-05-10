@@ -1,22 +1,23 @@
 (ns taxidermy.forms-test
   (:use clojure.test
         taxidermy.forms
+        taxidermy.validation
         taxidermy.fields))
 
-(defn max-length? [length]
-  (fn [form-values v] (<= length (count v))))
-
-(defn min-length? [length]
-  (fn [form-values v] (>= length (count v))))
+(defn in? 
+  "true if seq contains elm"
+  [seq elm]  
+  (some #(= elm %) seq))
 
 (def min-length-error "Must be at least two characters")
+(def max-length-error "Must not be longer than 20 characters")
 
 (defform contact
   :fields [
             (text-field :label "First Name" 
                         :field-name "first_name" 
-                        :validators [(field-validator (min-length? 2) (fn [] min-length-error))
-                                     (field-validator (max-length? 255) (fn [] "Must not be longer than 255 characters"))])
+                        :validators [(field-validator (min-length? 2) min-length-error)
+                                     (field-validator (max-length? 20) (fn [] max-length-error))])
             (text-field :label "Last Name" 
                         :field-name "last_name")
             (text-field :label "Email"
@@ -44,11 +45,19 @@
 
 (deftest test-validate
   (testing "Testing validate"
-    (let [test-form (contact {:firstname "Bob"})]
+    (let [test-form (contact {:first_name "Bob"})]
       (is (>= (count (validate test-form)) 0)))))
 
 (deftest test-minlength
   (testing "Testing min-length"
-    (let [test-form (contact {:firstname "Bo"})
-          errors (validate test-form)]
-      (is (contains? errors min-length-error)))))
+    (let [test-form (contact {:first_name "B"})
+          errors (validate test-form)
+          firstname-errors (:first_name errors)]
+      (is (in? firstname-errors min-length-error)))))
+
+(deftest test-maxlength-with-func
+  (testing "Testing max-length"
+    (let [test-form (contact {:first_name "Bob Boboboboboboboboboboboboobboob"})
+          errors (validate test-form)
+          firstname-errors (:first_name errors)]
+      (is (in? firstname-errors max-length-error)))))

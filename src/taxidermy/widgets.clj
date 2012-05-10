@@ -44,7 +44,7 @@
     (let [selected (:selected this)
           value (:value this)
           text (:text this)]
-      [:option {:selected selected :value value} text])))
+      [:option (merge selected {:value value}) text])))
 
 (defrecord Select []
   Widget
@@ -58,8 +58,8 @@
   [option-value form-value coerce]
   (let [coerced-value (coerce form-value)]
     (if (and (not (nil? coerced-value)) (= option-value coerced-value))
-      "selected"
-      "")))
+      {:selected "selected"}
+      {})))
 
 (defn build-option
   [field choice coerce]
