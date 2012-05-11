@@ -1,6 +1,6 @@
 # taxidermy
 
-Clojure web forms
+Clojure web forms inspired by [WTForms](https://bitbucket.org/simplecodes/wtforms/)
 
 ## Usage
 
