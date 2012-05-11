@@ -38,15 +38,33 @@
                                     ["No", 1]])
           ])
 
+(defform checkboxes
+  :fields [
+            (boolean-field :label "Mark Yes"
+                            :field-name "yes"
+                            :value "yes")
+            (boolean-field :label "Mark No"
+                            :field-name "no"
+                            :value "no")
+          ])
+
 (deftest test-defform
   (testing "Testing defform"
     (let [test-form (contact {})]
-      (is (= (count (:fields test-form)) 3)))))
+      (is (= 3 (count (:fields test-form)))))))
 
 (deftest test-validate
   (testing "Testing validate"
-    (let [test-form (contact {:first_name "Bob"})]
-      (is (>= (count (validate test-form)) 0)))))
+    (let [test-form (contact {:first_name "Bob"})
+          errors (validate test-form)]
+      (is (=  false (has-errors? errors))))))
+
+(deftest test-errors
+  (testing "Testing errors"
+    (let [test-form (contact {:first_name "Bobsd fadsjfosidfj dofidjsf oisdfjoisf jsdoifjdsf"})
+          errors (validate test-form)]
+      (is (= 1 (count (:first_name errors))))
+      (is (= true (has-errors? errors))))))
 
 (deftest test-minlength
   (testing "Testing min-length"
@@ -61,3 +79,16 @@
           errors (validate test-form)
           firstname-errors (:first_name errors)]
       (is (in? firstname-errors max-length-error)))))
+
+(deftest test-checkboxes
+  (testing "Testing checkboxes"
+    (let [test-form (checkboxes {:yes "yes"})
+          yes-box (:yes (:fields test-form))
+          no-box (:no (:fields test-form))
+          processed-values (process test-form)]
+      ; check rendered values
+      (is (.contains (str yes-box) "checked=\"checked\""))
+      (is (not (.contains (str no-box) "checked=\"checked\"")))
+      
+      ; check process value
+      (is (= true (:yes processed-values))))))

@@ -54,6 +54,12 @@
           attributes (:attributes field)]
       [:select (merge {:name field-name :id id} attributes)])))
 
+(defrecord Checkbox [value]
+  Widget
+  (markup [this field]
+    (let [checked (if (= value (:data field)) {:checked "checked"} {})]
+      [:input (merge checked {:type "checkbox" :value value})])))
+
 (defn selected?
   [option-value form-value coerce]
   (let [coerced-value (coerce form-value)]

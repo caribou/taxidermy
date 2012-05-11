@@ -3,12 +3,21 @@
   (:import [taxidermy.fields Field]))
 
 (defprotocol BaseForm
-  (field [this field-name]))
+  (field [this field-name])
+  (widget [this field-name])
+  (label [this field-name] [this field-name attributes]))
 
 (defrecord Form [name]
   BaseForm
   (field [this field-name]
-    (merge (:widget ((keyword field-name) (:fields this))))))
+    ((keyword field-name) (:fields this)))
+  (widget [this field-name]
+    (merge (:widget (field this field-name))))
+  (label [this field-name]
+    (label this field-name {}))
+  (label [this field-name attributes]
+    (let [field- (field this field-name)]
+      (.render-label field- attributes))))
 
 (defn- coerce-values
   [field-keys coercions values]
@@ -38,6 +47,11 @@
 (defmacro defform [form-name & options]
   `(defn ~form-name [values#]
     (make-form ~(keyword form-name) values# ~@options)))
+
+(defn process
+  [form]
+  (let [form-fields (:fields form)]
+    (reduce (fn [acc field-map] (assoc acc (key field-map) (fields/process-field (val field-map)))) {} form-fields)))
 
 ;(defform contact-form
   ;(text-field :field-name "firstname" :validators [my-val)

@@ -31,3 +31,8 @@
   (let [form-values (:values form)
         fields (:fields form)]
     (reduce (fn [acc field-map] (assoc acc (key field-map) (validate-field form-values (val field-map)))) {} fields)))
+
+(defn has-errors?
+  "Checks an error map returned from validate to see if it contains any errors"
+  [error-map]
+  (not-every? (comp empty? val) error-map))
