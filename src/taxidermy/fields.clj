@@ -135,7 +135,7 @@
     (assoc (SelectField. field-label field-name id value choices process-func validators attributes) :widget (Select.))))
 
 (defn boolean-field [& {:keys [label field-name id value process-func validators attributes]
-                     :or {value "" validators [] attributes {}}}]
+                     :or {value "y" validators [] attributes {}}}]
   (let [field-name (if (keyword? field-name)
                       (name field-name)
                       field-name)
