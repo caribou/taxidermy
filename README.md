@@ -4,48 +4,72 @@ Clojure web forms inspired by [WTForms](https://bitbucket.org/simplecodes/wtform
 
 ## Usage
 
+Import the code!
 ```clj
 (use 'taxidermy.forms)
 (use 'taxidermy.fields)
-(use '[taxidermy.validation :only [field-validator min-length?]])
+(use '[taxidermy.validation :only [validate field-validator min-length?]])
+```
 
-;; define the form
+Defining a form
+```clj
 (defform contact
   :fields [
             (text-field :label "First Name"
                         :field-name "first_name"
-                        :validators [(field-validator (min-length? 2) "Must be at least two characters.")]
+                        :validators [(field-validator (min-length? 2) "Must be at least two characters.")])
             (text-field :label "Last Name"
                         :field-name "last_name")
             (text-field :label "Email"
                         :field-name "email")
+            (boolean-field :label "Contact Me"
+                           :field-name "contact_me")
             (select-field :label "Newsletter"
                           :field-name "newsletter"
                           :choices [["Yes", 1]
                                     ["No", 0]])
           ])
+```
 
-;; Simulate some values from a web request
+Validate and process a form 
+
+```clj
+;;Simulate some values from a web request
 (def form-values {:first_name "Ryan" :last_name "Roemmich" :newsletter "1"})
 
 ;; Create an instance of the form with our values
 (def contact-form (contact form-values))
 
-;; get specific fields. Kept in the form as map keywords coresponding to the original `:field-name` used.
-;; Fields respond to toString so they can be used in templates
+;; validate the form
+(def errors (validate contact-form))
+;; => {:first_name (), :last_name (), :email (), :contact_me (), :newsletter ()}
+
+;; check for errors
+(has-errors? errors)
+;; => false
+
+;; Get the processed values (note how contact_me gives a Boolean)
+(process form)
+;; => {:first_name "Ryan", :last_name "Roemmich", :email "", :contact_me false, :newsletter 1}
+```
+
+Get specific fields. Kept in the form as map keywords coresponding to the original `:field-name` used. 
+Fields respond to toString so they can be used in templates
+
+```clj
 (def firstname (:first_name (:fields contact-form)))
 (def newsletter-dropdown (:newsletter (:fields contact-form)))
 
 ;; see our text input
 (str firstname)
-;; <input id="first_name" name="first_name" value="Ryan" />
+;; => <input id="first_name" name="first_name" value="Ryan" />
 
 ;; see what our dropdown looks like
 (str newsletter-dropdown)
-;; <select id="newsletter" name="newsletter">
-;;   <option selected="selected" value="1">Yes</option>
-;;   <option value="0">No</option>
-;; </select>
+;; => <select id="newsletter" name="newsletter">
+;; => <option selected="selected" value="1">Yes</option>
+;; =>   <option value="0">No</option>
+;; => </select>
 ```
 
 ## Todo
