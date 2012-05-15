@@ -28,6 +28,9 @@ Defining a form
                           :field-name "newsletter"
                           :choices [["Yes", 1]
                                     ["No", 0]])
+            (radio-field :field-name "question1"
+                          :choices [["Yes", 1]
+                                    ["No", 0]])
           ])
 ```
 
@@ -74,8 +77,6 @@ Fields respond to toString so they can be used in templates
 
 ## Todo
 
-* Radio
-* Checkbox
 * Multi Select
 * Button
 
