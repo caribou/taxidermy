@@ -148,7 +148,7 @@
     (assoc (BooleanField. field-label field-name id value process-func validators attributes) :widget (Checkbox. value))))
 
 (defn radio-field [& {:keys [field-name id choices process-func validators attributes]
-                     :or {value "" validators [] process-func util/parseint attributes {}}}]
+                     :or {value "" validators [] process-func string-processor attributes {}}}]
   (let [field-name (if (keyword? field-name)
                       (name field-name)
                       field-name)]

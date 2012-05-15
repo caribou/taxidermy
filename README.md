@@ -52,8 +52,8 @@ Validate and process a form
 ;; => false
 
 ;; Get the processed values (note how contact_me gives a Boolean)
-(process form)
-;; => {:first_name "Ryan", :last_name "Roemmich", :email "", :contact_me false, :newsletter 1}
+(processed-values form)
+;; => {:first_name "Ryan", :last_name "Roemmich", :email "", :contact_me false, :newsletter 1 :question1 nil}
 ```
 
 Get specific fields. Kept in the form as map keywords coresponding to the original `:field-name` used. 

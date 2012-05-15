@@ -48,10 +48,10 @@
   `(defn ~form-name [values#]
     (make-form ~(keyword form-name) values# ~@options)))
 
-(defn process
+(defn processed-values
   [form]
   (let [form-fields (:fields form)]
-    (reduce (fn [acc field-map] (assoc acc (key field-map) (fields/process-field (val field-map)))) {} form-fields)))
+    (reduce (fn [acc field-map] (assoc acc (key field-map) (:data (val field-map)))) {} form-fields)))
 
 ;(defform contact-form
   ;(text-field :field-name "firstname" :validators [my-val)
