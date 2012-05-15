@@ -41,7 +41,7 @@
         (let [processed-fields
                 (for [field fields]
                   (let [field-value ((keyword (:field-name field)) values)]
-                    (merge field {:data field-value})))]
+                    (merge field {:original-data field-value :data (fields/process-field field field-value)})))]
           (zipmap (map #(keyword (:field-name %)) fields) processed-fields))))))
 
 (defmacro defform [form-name & options]

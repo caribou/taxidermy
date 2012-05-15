@@ -22,7 +22,7 @@
     (let [widget (:widget this)]
       (html (.markup widget (assoc this :value (:data this)))))))
 
-(defrecord NumberField [label field-name id value process-func validators attributes]
+(defrecord IntegerField [label field-name id value process-func validators attributes]
   Field
   (render-label [this]
     (render-label this {}))
@@ -45,8 +45,7 @@
   (toString [this]
     (let [widget (:widget this)
           choices (:choices this)
-          coercion-func (:coerce this)
-          options (map #(.markup (widgets/build-option this % coercion-func) {}) choices)]
+          options (map #(.markup (widgets/build-option this % (:process-func this)) {}) choices)]
       (html (conj (.markup widget this) options)))))
 
 (defrecord RadioField [field-name id choices process-func validators attributes]
@@ -57,8 +56,7 @@
   Object
   (toString [this]
     (let [widget (:widget this)
-          choices (:choices this)
-          coercion-func (:coerce this)]
+          choices (:choices this)]
       (apply str (map #(html %) (.markup widget this))))))
 
 (defrecord BooleanField [label field-name id value process-func validators attributes]
@@ -81,7 +79,7 @@
   [v]
   (str v))
 
-(defn number-processor
+(defn integer-processor
   [v]
   (try
     (Integer/parseInt v)
@@ -93,33 +91,31 @@
 
 (defn process-field
   "Utility func to execute the processor function for a field"
-  [field]
-  ((:process-func field) (:data field)))
+  [field value]
+  ((:process-func field) value))
 
 ;; =====================================
 ;; Field constructor helpers
 ;; =====================================
     
 (defn text-field [& {:keys [label field-name id value process-func validators attributes]
-                     :or {value "" validators [] attributes {}}}]
+                     :or {value "" validators [] process-func string-processor attributes {}}}]
   (let [field-name (if (keyword? field-name)
                       (name field-name)
                       field-name)
-        field-label (or label field-name)
-        process-func string-processor]
+        field-label (or label field-name)]
     (assoc (TextField. field-label field-name id value process-func validators attributes) :widget (TextInput.))))
 
-(defn number-field [& {:keys [label field-name id value process-func validators attributes]
-                     :or {value "" validators [] attributes {}}}]
+(defn integer-field [& {:keys [label field-name id value process-func validators attributes]
+                     :or {value "" validators [] process-func integer-processor attributes {}}}]
   (let [field-name (if (keyword? field-name)
                       (name field-name)
                       field-name)
-        field-label (or label field-name)
-        process-func number-processor]
+        field-label (or label field-name)]
     (assoc (TextField. field-label field-name id value process-func validators attributes) :widget (TextInput.))))
 
 (defn hidden-field [& {:keys [label field-name id value process-func validators attributes]
-                     :or {value "" validators [] attributes {}}}]
+                     :or {value "" validators [] process-func string-processor attributes {}}}]
   (let [field-name (if (keyword? field-name)
                       (name field-name)
                       field-name)
@@ -127,7 +123,7 @@
     (assoc (TextField. field-label field-name id value process-func validators attributes) :widget (HiddenInput.))))
 
 (defn textarea-field [& {:keys [label field-name id value process-func validators attributes]
-                     :or {value "" validators [] attributes {}}}]
+                     :or {value "" validators [] process-func string-processor attributes {}}}]
   (let [field-name (if (keyword? field-name)
                       (name field-name)
                       field-name)
@@ -135,7 +131,7 @@
     (assoc (TextField. field-label field-name id value process-func validators attributes) :widget (TextArea.))))
 
 (defn select-field [& {:keys [label field-name id choices process-func validators attributes]
-                     :or {validators [] process-func util/parseint attributes {}}}]
+                     :or {validators [] process-func string-processor attributes {}}}]
   (let [field-name (if (keyword? field-name)
                       (name field-name)
                       field-name)
@@ -152,7 +148,7 @@
     (assoc (BooleanField. field-label field-name id value process-func validators attributes) :widget (Checkbox. value))))
 
 (defn radio-field [& {:keys [field-name id choices process-func validators attributes]
-                     :or {value "" validators [] attributes {}}}]
+                     :or {value "" validators [] process-func util/parseint attributes {}}}]
   (let [field-name (if (keyword? field-name)
                       (name field-name)
                       field-name)]

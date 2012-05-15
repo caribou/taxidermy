@@ -24,7 +24,7 @@
                         :field-name "email")
           ])
 
-(defform contact-choices
+(defform all-widgets
   :fields [
             (text-field :label "First Name" 
                         :field-name "first_name")
@@ -32,9 +32,14 @@
                         :field-name "last_name")
             (text-field :label "Email"
                         :field-name "email")
+            (integer-field :label "Age"
+                           :field-name "age")
             (select-field :label "Newsletter"
                           :field-name "newsletter"
                           :choices [["Yes", 0]
+                                    ["No", 1]])
+            (radio-field :field-name "question1"
+                         :choices [["Yes", 0]
                                     ["No", 1]])
           ])
 

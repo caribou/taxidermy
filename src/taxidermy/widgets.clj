@@ -108,24 +108,15 @@
       [:input (merge checked {:type "checkbox" :value value})])))
 
 (defn selected?
-  [option-value form-value coerce]
-  (let [coerced-value (coerce form-value)]
-    (if (and (not (nil? coerced-value)) (= option-value coerced-value))
-      {:selected "selected"}
-      {})))
+  [option-value field-data]
+  (if (and (not (nil? field-data)) (= option-value field-data))
+    {:selected "selected"}
+    {}))
 
 (defn build-option
-  [field choice coerce]
-  (let [field-value (:data field)
+  [field choice process-func]
+  (let [field-data (:data field)
         text (first choice)
         value (second choice)
-        selected (selected? value field-value coerce)]
+        selected (selected? (process-func value) field-data)]
     (Option. value text selected)))
-
-(defn build-radio
-  [field choice coerce]
-  (let [field-value (:data field)
-        text (first choice)
-        value (second choice)
-        selected (selected? value field-value coerce)]
-    (RadioList.)))
