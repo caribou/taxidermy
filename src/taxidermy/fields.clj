@@ -2,11 +2,13 @@
   (:use [hiccup.core :only [html]])
   (:require [taxidermy.widgets :as widgets]
             [taxidermy.util :as util])
-  (:import [taxidermy.widgets Checkbox HiddenInput Label Option Select TextArea TextInput]))
+  (:import [taxidermy.widgets Checkbox HiddenInput Label Option RadioList Select TextArea TextInput]))
 
 (defprotocol Field
-  (toString [this] [this attributes])
   (render-label [this] [this attributes]))
+
+(defprotocol RadioBase
+  (options [this]))
 
 (defrecord TextField [label field-name id value process-func validators attributes]
   Field
@@ -17,8 +19,6 @@
       (html (.markup field-label this additional-attr))))
   Object
   (toString [this]
-    (toString this {}))
-  (toString [this attributes]
     (let [widget (:widget this)]
       (html (.markup widget (assoc this :value (:data this)))))))
 
@@ -31,15 +31,13 @@
       (html (.markup field-label this additional-attr))))
   Object
   (toString [this]
-    (toString this {}))
-  (toString [this attributes]
     (let [widget (:widget this)]
       (html (.markup widget (assoc this :value (:data this)))))))
 
-(defrecord SelectField [label field-name id value choices process-func validators attributes]
+(defrecord SelectField [label field-name id choices process-func validators attributes]
   Field
   (render-label [this]
-    (label this {}))
+    (render-label this {}))
   (render-label [this additional-attr]
     (let [field-label (Label.)]
       (html (.markup field-label this additional-attr))))
@@ -51,6 +49,18 @@
           options (map #(.markup (widgets/build-option this % coercion-func) {}) choices)]
       (html (conj (.markup widget this) options)))))
 
+(defrecord RadioField [field-name id choices process-func validators attributes]
+  RadioBase
+  (options [this]
+    (let [widget (:widget this)]
+      (.options widget this)))
+  Object
+  (toString [this]
+    (let [widget (:widget this)
+          choices (:choices this)
+          coercion-func (:coerce this)]
+      (apply str (map #(html %) (.markup widget this))))))
+
 (defrecord BooleanField [label field-name id value process-func validators attributes]
   Field
   (render-label [this]
@@ -60,8 +70,6 @@
       (html (.markup field-label this additional-attr))))
   Object
   (toString [this]
-    (toString this {}))
-  (toString [this attributes]
     (let [widget (:widget this)]
       (html (.markup widget this)))))
 
@@ -126,13 +134,13 @@
         field-label (or label field-name)]
     (assoc (TextField. field-label field-name id value process-func validators attributes) :widget (TextArea.))))
 
-(defn select-field [& {:keys [label field-name id value choices process-func validators attributes]
-                     :or {value "" validators [] process-func util/parseint attributes {}}}]
+(defn select-field [& {:keys [label field-name id choices process-func validators attributes]
+                     :or {validators [] process-func util/parseint attributes {}}}]
   (let [field-name (if (keyword? field-name)
                       (name field-name)
                       field-name)
         field-label (or label field-name)]
-    (assoc (SelectField. field-label field-name id value choices process-func validators attributes) :widget (Select.))))
+    (assoc (SelectField. field-label field-name id choices process-func validators attributes) :widget (Select.))))
 
 (defn boolean-field [& {:keys [label field-name id value process-func validators attributes]
                      :or {value "y" validators [] attributes {}}}]
@@ -142,6 +150,13 @@
         field-label (or label field-name)
         process-func boolean-processor]
     (assoc (BooleanField. field-label field-name id value process-func validators attributes) :widget (Checkbox. value))))
+
+(defn radio-field [& {:keys [field-name id choices process-func validators attributes]
+                     :or {value "" validators [] attributes {}}}]
+  (let [field-name (if (keyword? field-name)
+                      (name field-name)
+                      field-name)]
+    (assoc (RadioField. field-name id choices process-func validators attributes) :widget (RadioList.))))
 
 (defn coercion-partial
   [field]

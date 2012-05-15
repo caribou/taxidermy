@@ -3,6 +3,13 @@
 (defprotocol Widget
   (markup [this field] [this field additional-attr]))
 
+(defprotocol RadioListBase
+  (options [this field]))
+
+(defprotocol RadioItemBase
+  (label [this] [this attributes])
+  (button [this] [this attributes]))
+
 (defrecord Label []
   Widget
   (markup [this field additional-attr]
@@ -46,6 +53,46 @@
           text (:text this)]
       [:option (merge selected {:value value}) text])))
 
+(defrecord RadioLabel [field counter text]
+  Widget
+  (markup [this attributes]
+    (let [target-id (str (:field-name field) "-" counter)]
+      [:label (merge attributes {:for target-id}) text])))
+
+(defrecord RadioInput [field counter value checked]
+  Widget
+  (markup [this attributes]
+    (let [field-name (:field-name field)
+          base-id (or (:id field) field-name)
+          id (str base-id "-" counter)]
+      [:input (merge {:id id :name field-name} checked {:type "radio" :value value} attributes)])))
+
+(defrecord RadioItem [field value text counter]
+  RadioItemBase
+  (label [this attributes]
+    (.markup (RadioLabel. field counter text) attributes))
+  (label [this]
+    (label this {}))
+  (button [this attributes]
+    (let [checked (if (= (:data field) value) {:checked "checked"} {})]
+      (.markup (RadioInput. field counter value checked) attributes)))
+  (button [this]
+    (button this {})))
+
+(defrecord RadioList []
+  RadioListBase
+  (options [this field]
+    (let [counter (atom 0)]
+      (for [choice (:choices field)]
+        (let [text (first choice)
+              value (second choice)
+              _counter (swap! counter inc)]
+          (RadioItem. field value text _counter)))))
+  Widget
+  (markup [this field]
+    (for [option (.options this field)]
+      (list (.label option) (.button option)))))
+
 (defrecord Select []
   Widget
   (markup [this field]
@@ -74,3 +121,11 @@
         value (second choice)
         selected (selected? value field-value coerce)]
     (Option. value text selected)))
+
+(defn build-radio
+  [field choice coerce]
+  (let [field-value (:data field)
+        text (first choice)
+        value (second choice)
+        selected (selected? value field-value coerce)]
+    (RadioList.)))
