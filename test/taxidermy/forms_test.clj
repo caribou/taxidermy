@@ -1,8 +1,9 @@
 (ns taxidermy.forms-test
   (:use clojure.test
-        taxidermy.forms
-        taxidermy.validation
-        taxidermy.fields))
+        taxidermy.forms)
+  (:require 
+        [taxidermy.validation :as validation]
+        [taxidermy.fields :as fields]))
 
 (defn in? 
   "true if seq contains elm"
@@ -14,41 +15,47 @@
 
 (defform contact
   :fields [
-            (text-field :label "First Name" 
+            (fields/text-field :label "First Name" 
                         :field-name "first_name" 
-                        :validators [(field-validator (min-length? 2) min-length-error)
-                                     (field-validator (max-length? 20) (fn [] max-length-error))])
-            (text-field :label "Last Name" 
+                        :validators [(validation/field-validator (validation/min-length? 2) min-length-error)
+                                     (validation/field-validator (validation/max-length? 20) (fn [] max-length-error))])
+            (fields/text-field :label "Last Name" 
                         :field-name "last_name")
-            (text-field :label "Email"
+            (fields/text-field :label "Email"
                         :field-name "email")
           ])
 
 (defform all-widgets
   :fields [
-            (text-field :label "First Name" 
+            (fields/text-field :label "First Name" 
                         :field-name "first_name")
-            (text-field :label "Last Name" 
+            (fields/text-field :label "Last Name" 
                         :field-name "last_name")
-            (text-field :label "Email"
+            (fields/text-field :label "Email"
                         :field-name "email")
-            (integer-field :label "Age"
+            (fields/integer-field :label "Age"
                            :field-name "age")
-            (select-field :label "Newsletter"
+            (fields/select-field :label "Newsletter"
                           :field-name "newsletter"
                           :choices [["Yes", 0]
                                     ["No", 1]])
-            (radio-field :field-name "question1"
+            (fields/radio-field :field-name "question1"
                          :choices [["Yes", 0]
                                     ["No", 1]])
+            (fields/boolean-field :label "Mark Yes"
+                            :field-name "yes"
+                            :value "yes")
+            (fields/boolean-field :label "Mark No"
+                            :field-name "no"
+                            :value "no")
           ])
 
 (defform checkboxes
   :fields [
-            (boolean-field :label "Mark Yes"
+            (fields/boolean-field :label "Mark Yes"
                             :field-name "yes"
                             :value "yes")
-            (boolean-field :label "Mark No"
+            (fields/boolean-field :label "Mark No"
                             :field-name "no"
                             :value "no")
           ])
@@ -61,27 +68,27 @@
 (deftest test-validate
   (testing "Testing validate"
     (let [test-form (contact {:first_name "Bob"})
-          errors (validate test-form)]
-      (is (=  false (has-errors? errors))))))
+          errors (validation/validate test-form)]
+      (is (=  false (validation/has-errors? errors))))))
 
 (deftest test-errors
   (testing "Testing errors"
     (let [test-form (contact {:first_name "Bobsd fadsjfosidfj dofidjsf oisdfjoisf jsdoifjdsf"})
-          errors (validate test-form)]
+          errors (validation/validate test-form)]
       (is (= 1 (count (:first_name errors))))
-      (is (= true (has-errors? errors))))))
+      (is (= true (validation/has-errors? errors))))))
 
 (deftest test-minlength
   (testing "Testing min-length"
     (let [test-form (contact {:first_name "B"})
-          errors (validate test-form)
+          errors (validation/validate test-form)
           firstname-errors (:first_name errors)]
       (is (in? firstname-errors min-length-error)))))
 
 (deftest test-maxlength-with-func
   (testing "Testing max-length"
     (let [test-form (contact {:first_name "Bob Boboboboboboboboboboboboobboob"})
-          errors (validate test-form)
+          errors (validation/validate test-form)
           firstname-errors (:first_name errors)]
       (is (in? firstname-errors max-length-error)))))
 
@@ -90,10 +97,10 @@
     (let [test-form (checkboxes {:yes "yes"})
           yes-box (:yes (:fields test-form))
           no-box (:no (:fields test-form))
-          processed-values (process test-form)]
+          processed-vals (processed-values test-form)]
       ; check rendered values
       (is (.contains (str yes-box) "checked=\"checked\""))
       (is (not (.contains (str no-box) "checked=\"checked\"")))
       
       ; check process value
-      (is (= true (:yes processed-values))))))
+      (is (= true (:yes processed-vals))))))

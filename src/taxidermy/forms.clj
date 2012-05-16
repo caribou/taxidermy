@@ -5,7 +5,9 @@
 (defprotocol BaseForm
   (field [this field-name])
   (widget [this field-name])
-  (label [this field-name] [this field-name attributes]))
+  (render-widget [this field-name] [this field-name additional-attr])
+  (label [this field-name])
+  (render-label [this field-name] [this field-name additional-attr]))
 
 (defrecord Form [name]
   BaseForm
@@ -13,11 +15,19 @@
     ((keyword field-name) (:fields this)))
   (widget [this field-name]
     (merge (:widget (field this field-name))))
+  (render-widget [this field-name additional-attr]
+    (let [form-field (.field this field-name)]
+      (.render (:widget form-field) form-field additional-attr)))
+  (render-widget [this field-name]
+    (.render-widget this field-name {}))
   (label [this field-name]
-    (label this field-name {}))
-  (label [this field-name attributes]
     (let [field- (field this field-name)]
-      (.render-label field- attributes))))
+      (.label field-)))
+  (render-label [this field-name additional-attr]
+    (let [field- (field this field-name)]
+      (.render-label field- additional-attr)))
+  (render-label [this field-name]
+    (.render-label this field-name {})))
 
 (defn- coerce-values
   [field-keys coercions values]

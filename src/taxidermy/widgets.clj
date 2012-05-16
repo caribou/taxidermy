@@ -1,31 +1,47 @@
-(ns taxidermy.widgets)
+(ns taxidermy.widgets
+  (:use [hiccup.core :only [html]])
+  (:require [taxidermy.util :as util]))
 
 (defprotocol Widget
-  (markup [this field] [this field additional-attr]))
+  (markup [this field] [this field additional-attr])
+  (render [this field] [this field additional-attr]))
 
 (defprotocol RadioListBase
   (options [this field]))
 
 (defprotocol RadioItemBase
   (label [this] [this attributes])
-  (button [this] [this attributes]))
+  (render-label [this] [this attributes])
+  (button [this] [this attributes])
+  (render-button [this] [this attributes]))
 
 (defrecord Label []
   Widget
   (markup [this field additional-attr]
     (let [field-name (:field-name field)
           label-text (:label field)]
-      [:label (merge {:for field-name} additional-attr) (str label-text)])))
+      [:label (merge {:for field-name} additional-attr) (str label-text)]))
+  (markup [this field]
+    (.markup this field {}))
+  (render [this field additional-attr]
+    (html (.markup this field (util/check-attributes additional-attr))))
+  (render [this field]
+    (.render this field {})))
 
 (defrecord TextInput []
   Widget
-  (markup [this field]
+  (markup [this field additional-attr]
     (let [field-name (:field-name field)
           id (or (:id field) field-name)
           type (:type field)
-          value (:value field)
-          attributes (:attributes field)]
-      [:input (merge {:type type :name field-name :id id :value value} attributes)])))
+          value (:value field)]
+      [:input (merge {:type type :name field-name :id id :value value} additional-attr)]))
+  (markup [this field]
+    (.markup this field {}))
+  (render [this field additional-attr]
+    (html (.markup this field (util/check-attributes additional-attr))))
+  (render [this field]
+    (.render this field {})))
 
 (defrecord HiddenInput []
   Widget
@@ -38,12 +54,17 @@
 
 (defrecord TextArea []
   Widget
-  (markup [this field]
+  (markup [this field additional-attr]
     (let [field-name (:field-name field)
           id (or (:id field) field-name)
-          value (:value field)
-          attributes (:attributes field)]
-      [:textarea (merge {:name field-name :id id} attributes value)])))
+          value (:value field)]
+      [:textarea (merge {:name field-name :id id} additional-attr value)]))
+  (markup [this field]
+    (.markup this field {}))
+  (render [this field additional-attr]
+    (html (.markup this field additional-attr))
+  (render [this field]
+    (.render this field {}))))
 
 (defrecord Option [value text selected]
   Widget
@@ -73,25 +94,38 @@
     (.markup (RadioLabel. field counter text) attributes))
   (label [this]
     (label this {}))
+  (render-label [this attributes]
+    (html (.label this attributes)))
+  (render-label [this]
+    (.render-label this {}))
   (button [this attributes]
     (let [checked (if (= (:data field) value) {:checked "checked"} {})]
       (.markup (RadioInput. field counter value checked) attributes)))
   (button [this]
-    (button this {})))
+    (button this {}))
+  (render-button [this attributes]
+    (html (.button this attributes)))
+  (render-button [this]
+    (.render-button this {})))
 
 (defrecord RadioList []
   RadioListBase
   (options [this field]
-    (let [counter (atom 0)]
-      (for [choice (:choices field)]
-        (let [text (first choice)
-              value (second choice)
-              _counter (swap! counter inc)]
-          (RadioItem. field value text _counter)))))
+    (loop [option-list [] 
+           counter 0 
+           choices (:choices field)]
+      (if choices
+        (let [choice (first choices)
+              text (first choice)
+              value (second choice)]
+          (recur (conj option-list (RadioItem. field value text counter)) (inc counter) (next choices)))
+        option-list)))
   Widget
   (markup [this field]
     (for [option (.options this field)]
-      (list (.label option) (.button option)))))
+      (list (.label option) (.button option))))
+  (render [this field]
+    (map #(html %) (.markup this field))))
 
 (defrecord Select []
   Widget
@@ -103,9 +137,17 @@
 
 (defrecord Checkbox [value]
   Widget
+  (markup [this field additional-attr]
+    (let [checked (if (:data field) {:checked "checked"} {})
+          field-name (:field-name field)
+          id (or (:id field) field-name)]
+      [:input (merge checked {:type "checkbox" :value value :name field-name :id id} additional-attr)]))
   (markup [this field]
-    (let [checked (if (= value (:data field)) {:checked "checked"} {})]
-      [:input (merge checked {:type "checkbox" :value value})])))
+    (.markup this field {}))
+  (render [this field additional-attr]
+    (html (.markup this field (util/check-attributes additional-attr))))
+  (render [this field]
+    (.render this field {})))
 
 (defn selected?
   [option-value field-data]

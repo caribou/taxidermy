@@ -1,52 +1,67 @@
 (ns taxidermy.fields
-  (:use [hiccup.core :only [html]])
   (:require [taxidermy.widgets :as widgets]
             [taxidermy.util :as util])
   (:import [taxidermy.widgets Checkbox HiddenInput Label Option RadioList Select TextArea TextInput]))
 
 (defprotocol Field
-  (render-label [this] [this attributes]))
+  (label [this] [this additional-attr])
+  (render-label [this] [this additional-attr]))
 
 (defprotocol RadioBase
   (options [this]))
 
 (defrecord TextField [label field-name id value process-func validators attributes]
   Field
+  (label [this additional-attr]
+    (let [field-label (Label.)]
+      (.markup field-label this additional-attr)))
+  (label [this]
+    (.label this {}))
   (render-label [this]
-    (render-label this {}))
+    (.render-label this {}))
   (render-label [this additional-attr]
     (let [field-label (Label.)]
-      (html (.markup field-label this additional-attr))))
+      (.render field-label this additional-attr)))
   Object
   (toString [this]
     (let [widget (:widget this)]
-      (html (.markup widget (assoc this :value (:data this)))))))
+      (.render widget (assoc this :value (:data this))))))
 
 (defrecord IntegerField [label field-name id value process-func validators attributes]
   Field
+  (label [this additional-attr]
+    (let [field-label (Label.)]
+      (.markup field-label this additional-attr)))
+  (label [this]
+    (.label this {}))
   (render-label [this]
     (render-label this {}))
   (render-label [this additional-attr]
     (let [field-label (Label.)]
-      (html (.markup field-label this additional-attr))))
+      (.render field-label this additional-attr)))
   Object
   (toString [this]
     (let [widget (:widget this)]
-      (html (.markup widget (assoc this :value (:data this)))))))
+      (.render widget (assoc this :value (:data this))))))
 
 (defrecord SelectField [label field-name id choices process-func validators attributes]
   Field
+  (label [this additional-attr]
+    (let [field-label (Label.)]
+      (.markup field-label this additional-attr)))
+  (label [this]
+    (.label this {}))
   (render-label [this]
     (render-label this {}))
   (render-label [this additional-attr]
     (let [field-label (Label.)]
-      (html (.markup field-label this additional-attr))))
+      (.render field-label this additional-attr)))
   Object
   (toString [this]
     (let [widget (:widget this)
           choices (:choices this)
           options (map #(.markup (widgets/build-option this % (:process-func this)) {}) choices)]
-      (html (conj (.markup widget this) options)))))
+      (conj (.render widget this) options))))
 
 (defrecord RadioField [field-name id choices process-func validators attributes]
   RadioBase
@@ -57,19 +72,24 @@
   (toString [this]
     (let [widget (:widget this)
           choices (:choices this)]
-      (apply str (map #(html %) (.markup widget this))))))
+      (apply str (.render widget this)))))
 
 (defrecord BooleanField [label field-name id value process-func validators attributes]
   Field
+  (label [this additional-attr]
+    (let [field-label (Label.)]
+      (.markup field-label this additional-attr)))
+  (label [this]
+    (.label this {}))
   (render-label [this]
     (render-label this {}))
   (render-label [this additional-attr]
     (let [field-label (Label.)]
-      (html (.markup field-label this additional-attr))))
+      (.render field-label this additional-attr)))
   Object
   (toString [this]
     (let [widget (:widget this)]
-      (html (.markup widget this)))))
+      (.render widget this))))
 
 ;; =====================================
 ;; Field processors
