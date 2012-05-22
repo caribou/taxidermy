@@ -7,28 +7,28 @@ Clojure web forms inspired by [WTForms](https://bitbucket.org/simplecodes/wtform
 Import the code!
 ```clj
 (use 'taxidermy.forms)
-(use 'taxidermy.fields)
-(use '[taxidermy.validation :only [validate field-validator min-length?]])
+(require '[taxidermy.field :as fields])
+(require '[taxidermy.validation :as validation])
 ```
 
 Defining a form
 ```clj
 (defform contact
   :fields [
-            (text-field :label "First Name"
+            (fields/text-field :label "First Name"
                         :field-name "first_name"
-                        :validators [(field-validator (min-length? 2) "Must be at least two characters.")])
-            (text-field :label "Last Name"
+                        :validators [(validation/field-validator (validation/min-length? 2) "Must be at least two characters.")])
+            (fields/text-field :label "Last Name"
                         :field-name "last_name")
-            (text-field :label "Email"
+            (fields/text-field :label "Email"
                         :field-name "email")
-            (boolean-field :label "Contact Me"
+            (fields/boolean-field :label "Contact Me"
                            :field-name "contact_me")
-            (select-field :label "Newsletter"
+            (fields/select-field :label "Newsletter"
                           :field-name "newsletter"
                           :choices [["Yes", 1]
                                     ["No", 0]])
-            (radio-field :field-name "question1"
+            (fields/radio-field :field-name "question1"
                           :choices [["Yes", 1]
                                     ["No", 0]])
           ])
@@ -44,7 +44,7 @@ Validate and process a form
 (def contact-form (contact form-values))
 
 ;; validate the form
-(def errors (validate contact-form))
+(def errors (validation/validate contact-form))
 ;; => {:first_name (), :last_name (), :email (), :contact_me (), :newsletter ()}
 
 ;; check for errors
