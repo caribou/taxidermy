@@ -5,9 +5,11 @@
 
 (defprotocol Field
   (label [this] [this additional-attr])
+  (markup [this])
   (render-label [this] [this additional-attr]))
 
 (defprotocol RadioBase
+  (markup [this])
   (options [this]))
 
 (defrecord TextField [label field-name id value process-func validators attributes]
@@ -17,6 +19,9 @@
       (.markup field-label this additional-attr)))
   (label [this]
     (.label this {}))
+  (markup [this]
+    (let [widget (:widget this)]
+      (.markup widget this)))
   (render-label [this]
     (.render-label this {}))
   (render-label [this additional-attr]
@@ -34,6 +39,9 @@
       (.markup field-label this additional-attr)))
   (label [this]
     (.label this {}))
+  (markup [this]
+    (let [widget (:widget this)]
+      (.markup widget this)))
   (render-label [this]
     (render-label this {}))
   (render-label [this additional-attr]
@@ -51,6 +59,11 @@
       (.markup field-label this additional-attr)))
   (label [this]
     (.label this {}))
+  (markup [this]
+    (let [widget (:widget this)
+          choices (:choices this)
+          options (map #(.markup (widgets/build-option this % (:process-func this)) {}) choices)]
+      (conj (.markup widget this) options)))
   (render-label [this]
     (render-label this {}))
   (render-label [this additional-attr]
@@ -68,6 +81,9 @@
   (options [this]
     (let [widget (:widget this)]
       (.options widget this)))
+  (markup [this]
+    (let [widget (:widget this)]
+      (.markup widget this)))
   Object
   (toString [this]
     (let [widget (:widget this)
@@ -81,6 +97,9 @@
       (.markup field-label this additional-attr)))
   (label [this]
     (.label this {}))
+  (markup [this]
+    (let [widget (:widget this)]
+      (.markup widget this)))
   (render-label [this]
     (render-label this {}))
   (render-label [this additional-attr]
@@ -159,12 +178,11 @@
     (assoc (SelectField. field-label field-name id choices process-func validators attributes) :widget (Select.))))
 
 (defn boolean-field [& {:keys [label field-name id value process-func validators attributes]
-                     :or {value "y" validators [] attributes {}}}]
+                     :or {value "y" process-func boolean-processor validators [] attributes {}}}]
   (let [field-name (if (keyword? field-name)
                       (name field-name)
                       field-name)
-        field-label (or label field-name)
-        process-func boolean-processor]
+        field-label (or label field-name)]
     (assoc (BooleanField. field-label field-name id value process-func validators attributes) :widget (Checkbox. value))))
 
 (defn radio-field [& {:keys [field-name id choices process-func validators attributes]
