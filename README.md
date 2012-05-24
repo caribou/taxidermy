@@ -7,7 +7,7 @@ Clojure web forms inspired by [WTForms](https://bitbucket.org/simplecodes/wtform
 Import the code!
 ```clj
 (use 'taxidermy.forms)
-(require '[taxidermy.field :as fields])
+(require '[taxidermy.fields :as fields])
 (require '[taxidermy.validation :as validation])
 ```
 
