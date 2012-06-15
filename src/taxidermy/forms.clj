@@ -29,21 +29,6 @@
   (render-label [this field-name]
     (.render-label this field-name {})))
 
-(defn- coerce-values
-  [field-keys coercions values]
-  (for [field-key field-keys]
-    (let [coercion (field-key coercions)]
-      (coercion (field-key values)))))
-
-(defn- coerce-form-values
-  [form values]
-  (let [fields (:fields form)
-        field-keys (keys fields)
-        field-vals (map #(% fields) field-keys)
-        coercions (zipmap field-keys (map #(fields/coercion-partial %) field-vals))
-        coerced-values (coerce-values field-keys coercions values)]
-    (zipmap field-keys coerced-values)))
-
 (defn make-form [form-name values & {:keys [fields] :as options}]
   (let [form (Form. form-name)]
     (merge form

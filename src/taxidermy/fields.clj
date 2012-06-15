@@ -191,8 +191,3 @@
                       (name field-name)
                       field-name)]
     (assoc (RadioField. field-name id choices process-func validators attributes) :widget (RadioList.))))
-
-(defn coercion-partial
-  [field]
-  (partial (:process-func field) field))
-
