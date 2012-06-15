@@ -4,6 +4,12 @@ Clojure web forms inspired by [WTForms](https://bitbucket.org/simplecodes/wtform
 
 ## Usage
 
+using Lein
+
+```clj
+[taxidermy "0.1.0"]
+```
+
 Import the code!
 ```clj
 (use 'taxidermy.forms)
