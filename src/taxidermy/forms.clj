@@ -1,5 +1,7 @@
 (ns taxidermy.forms
-  (:require [taxidermy.fields :as fields])
+  (:use     [taxidermy.widgets :only [make-label]])
+  (:require [taxidermy.fields :as fields]
+            [taxidermy.values :as values])
   (:import [taxidermy.fields Field]))
 
 (defprotocol BaseForm
@@ -29,15 +31,18 @@
   (render-label [this field-name]
     (.render-label this field-name {})))
 
-(defn make-form [form-name values & {:keys [fields] :as options}]
-  (let [form (Form. form-name)]
-    (merge form
-      (hash-map :values values :fields
-        (let [processed-fields
-                (for [field fields]
-                  (let [field-value ((keyword (:field-name field)) values)]
-                    (merge field {:original-data field-value :data (fields/process-field field field-value)})))]
-          (zipmap (map #(keyword (:field-name %)) fields) processed-fields))))))
+(defn- process-fields
+  [fields values]
+  (for [field fields]
+    (let [field-value (values (keyword (:field-name field)))]
+      (merge field {:original-data field-value :data (fields/process-field field field-value)}))))
+
+(defn make-form 
+  [form-name values & {:keys [fields] :as options}]
+  (let [fields-with-data (map #(assoc % :data (get values (keyword (:field-name %)))) fields)
+        field-map (zipmap (map #(keyword (:field-name %)) fields-with-data) fields-with-data)
+        label-map (zipmap (map #(keyword (:field-name %)) fields-with-data) (map :label fields-with-data))]
+    (merge (Form. name) {:original-values values :fields field-map :labels label-map})))
 
 (defmacro defform [form-name & options]
   `(defn ~form-name [values#]

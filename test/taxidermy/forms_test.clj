@@ -10,6 +10,9 @@
   [seq elm]  
   (some #(= elm %) seq))
 
+(defmacro is-true? [body]
+  `(is ~body))
+
 (def min-length-error "Must be at least two characters")
 (def max-length-error "Must not be longer than 20 characters")
 
@@ -33,13 +36,15 @@
                         :field-name "last_name")
             (fields/text-field :label "Email"
                         :field-name "email")
+            (fields/textarea-field :label "Description"
+                        :field-name "description")
             (fields/integer-field :label "Age"
                            :field-name "age")
             (fields/select-field :label "Newsletter"
                           :field-name "newsletter"
                           :choices [["Yes", 0]
                                     ["No", 1]])
-            (fields/radio-field :field-name "question1"
+            (fields/radio-field :field-name "question1" :label "Question 1"
                          :choices [["Yes", 0]
                                     ["No", 1]])
             (fields/boolean-field :label "Mark Yes"
@@ -69,14 +74,14 @@
   (testing "Testing validate"
     (let [test-form (contact {:first_name "Bob"})
           errors (validation/validate test-form)]
-      (is (=  false (validation/has-errors? errors))))))
+      (is-true? (not (validation/has-errors? errors))))))
 
 (deftest test-errors
   (testing "Testing errors"
     (let [test-form (contact {:first_name "Bobsd fadsjfosidfj dofidjsf oisdfjoisf jsdoifjdsf"})
           errors (validation/validate test-form)]
       (is (= 1 (count (:first_name errors))))
-      (is (= true (validation/has-errors? errors))))))
+      (is-true? (validation/has-errors? errors)))))
 
 (deftest test-minlength
   (testing "Testing min-length"
@@ -99,8 +104,8 @@
           no-box (:no (:fields test-form))
           processed-vals (processed-values test-form)]
       ; check rendered values
-      (is (.contains (str yes-box) "checked=\"checked\""))
-      (is (not (.contains (str no-box) "checked=\"checked\"")))
+      (is-true? (.contains (str yes-box) "checked=\"checked\""))
+      (is-true? (not (.contains (str no-box) "checked=\"checked\"")))
       
       ; check process value
-      (is (= true (:yes processed-vals))))))
+      (is-true? (:yes processed-vals)))))
