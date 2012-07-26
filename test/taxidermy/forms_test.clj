@@ -1,13 +1,13 @@
 (ns taxidermy.forms-test
   (:use clojure.test
         taxidermy.forms)
-  (:require 
+  (:require
         [taxidermy.validation :as validation]
         [taxidermy.fields :as fields]))
 
-(defn in? 
+(defn in?
   "true if seq contains elm"
-  [seq elm]  
+  [seq elm]
   (some #(= elm %) seq))
 
 (defmacro is-true? [body]
@@ -18,11 +18,11 @@
 
 (defform contact
   :fields [
-            (fields/text-field :label "First Name" 
-                        :field-name "first_name" 
+            (fields/text-field :label "First Name"
+                        :field-name "first_name"
                         :validators [(validation/field-validator (validation/min-length? 2) min-length-error)
                                      (validation/field-validator (validation/max-length? 20) (fn [] max-length-error))])
-            (fields/text-field :label "Last Name" 
+            (fields/text-field :label "Last Name"
                         :field-name "last_name")
             (fields/text-field :label "Email"
                         :field-name "email")
@@ -30,9 +30,9 @@
 
 (defform all-widgets
   :fields [
-            (fields/text-field :label "First Name" 
+            (fields/text-field :label "First Name"
                         :field-name "first_name")
-            (fields/text-field :label "Last Name" 
+            (fields/text-field :label "Last Name"
                         :field-name "last_name")
             (fields/text-field :label "Email"
                         :field-name "email")
@@ -106,6 +106,6 @@
       ; check rendered values
       (is-true? (.contains (str yes-box) "checked=\"checked\""))
       (is-true? (not (.contains (str no-box) "checked=\"checked\"")))
-      
+
       ; check process value
       (is-true? (:yes processed-vals)))))

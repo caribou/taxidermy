@@ -4,16 +4,16 @@
   (:import [taxidermy.widgets Label TextInput HiddenInput TextArea]))
 
 ;; define some nice funcs/macros to help testing
-(defn in? 
+(defn in?
   "true if seq contains elm"
-  [seq elm]  
+  [seq elm]
   (some #(= elm %) seq))
 
 (defmacro is-true? [body]
   `(is ~body))
 
 (defmacro str-contains? [haystack needle]
-  `(is-true? (.contains ~haystack ~needle)))  
+  `(is-true? (.contains ~haystack ~needle)))
 
 (defmacro seq-contains? [haystack needle]
   `(is-true? (some (partial = ~needle) ~haystack)))
@@ -76,4 +76,4 @@
       (markup-attr-exists? input-markup :data-ghost (:data-ghost (:attributes field)))
       (markup-attr-exists? input-markup :id (:id field)))))
 
-;; TODO: add tests for the remaining widgets      
+;; TODO: add tests for the remaining widgets

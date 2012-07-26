@@ -40,7 +40,7 @@ Defining a form
           ])
 ```
 
-Validate and process a form 
+Validate and process a form
 
 ```clj
 ;;Simulate some values from a web request
@@ -62,7 +62,7 @@ Validate and process a form
 ;; => {:first_name "Ryan", :last_name "Roemmich", :email "", :contact_me false, :newsletter 1 :question1 nil}
 ```
 
-Get specific fields. Kept in the form as map keywords coresponding to the original `:field-name` used. 
+Get specific fields. Kept in the form as map keywords coresponding to the original `:field-name` used.
 Fields respond to toString so they can be used in templates
 
 ```clj

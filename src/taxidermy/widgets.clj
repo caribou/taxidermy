@@ -78,7 +78,7 @@
 (defn build-radio-options
   [field data process-func choices]
   (loop [radio-item-list []
-         counter 0 
+         counter 0
          option-choices choices]
     (if option-choices
       (let [choice (first option-choices)
@@ -134,8 +134,8 @@
 (defn build-select-options
   [field data process-func choices]
   (let [form-data (if (seq? data) data (list data))]
-    (loop [option-list [] 
-           counter 0 
+    (loop [option-list []
+           counter 0
            option-choices choices]
       (if option-choices
         (let [choice (first option-choices)
@@ -172,7 +172,7 @@
     (html (.markup this field))))
 
 
-(defn make-label 
+(defn make-label
   [field]
     "")
 

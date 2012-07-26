@@ -37,7 +37,7 @@
     (let [field-value (values (keyword (:field-name field)))]
       (merge field {:original-data field-value :data (fields/process-field field field-value)}))))
 
-(defn make-form 
+(defn make-form
   [form-name values & {:keys [fields] :as options}]
   (let [fields-with-data (map #(assoc % :data (get values (keyword (:field-name %)))) fields)
         field-map (zipmap (map #(keyword (:field-name %)) fields-with-data) fields-with-data)
