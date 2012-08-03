@@ -31,15 +31,16 @@
   (render-label [this field-name]
     (.render-label this field-name {})))
 
-(defn- process-fields
-  [fields values]
-  (for [field fields]
-    (let [field-value (values (keyword (:field-name field)))]
-      (merge field {:original-data field-value :data (fields/process-field field field-value)}))))
+(defn- process-field
+  [field values]
+  (let [field-name (keyword (:field-name field))
+        field-value (:value field)
+        field-data (values field-name)]
+    (merge field {:original-data field-value :data field-data :value (fields/process-field field field-data)})))
 
 (defn make-form
   [form-name values & {:keys [fields] :as options}]
-  (let [fields-with-data (map #(assoc % :data (get values (keyword (:field-name %)))) fields)
+  (let [fields-with-data (map #(process-field % values) fields)
         field-map (zipmap (map #(keyword (:field-name %)) fields-with-data) fields-with-data)
         label-map (zipmap (map #(keyword (:field-name %)) fields-with-data) (map :label fields-with-data))]
     (merge (Form. name) {:original-values values :fields field-map :labels label-map})))
