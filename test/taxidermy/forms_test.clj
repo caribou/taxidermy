@@ -10,8 +10,11 @@
   [seq elm]
   (some #(= elm %) seq))
 
-(defmacro is-true? [body]
-  `(is ~body))
+(defmacro str-contains? [haystack needle]
+  `(is (.contains ~haystack ~needle)))
+
+(defmacro is-equal? [a b]
+  `(is (= ~a ~b)))
 
 (def min-length-error "Must be at least two characters")
 (def max-length-error "Must not be longer than 20 characters")
@@ -74,14 +77,14 @@
   (testing "Testing validate"
     (let [test-form (contact {:first_name "Bob"})
           errors (validation/validate test-form)]
-      (is-true? (not (validation/has-errors? errors))))))
+      (is (not (validation/has-errors? errors))))))
 
 (deftest test-errors
   (testing "Testing errors"
     (let [test-form (contact {:first_name "Bobsd fadsjfosidfj dofidjsf oisdfjoisf jsdoifjdsf"})
           errors (validation/validate test-form)]
-      (is (= 1 (count (:first_name errors))))
-      (is-true? (validation/has-errors? errors)))))
+      (is-equal? 1 (count (:first_name errors)))
+      (is (validation/has-errors? errors)))))
 
 (deftest test-minlength
   (testing "Testing min-length"
@@ -104,8 +107,8 @@
           no-box (:no (:fields test-form))
           processed-vals (processed-values test-form)]
       ; check rendered values
-      (is-true? (.contains (str yes-box) "checked=\"checked\""))
-      (is-true? (not (.contains (str no-box) "checked=\"checked\"")))
+      (str-contains? (str yes-box) "checked=\"checked\"")
+      (is (not (.contains (str no-box) "checked=\"checked\"")))
 
       ; check process value
-      (is-true? (:yes processed-vals)))))
+      (is (:yes processed-vals)))))

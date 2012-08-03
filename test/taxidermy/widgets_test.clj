@@ -9,19 +9,23 @@
   [seq elm]
   (some #(= elm %) seq))
 
-(defmacro is-true? [body]
-  `(is ~body))
+(defmacro is-equal? [a b]
+  `(is (= ~a ~b)))
 
 (defmacro str-contains? [haystack needle]
-  `(is-true? (.contains ~haystack ~needle)))
+  `(is (.contains ~haystack ~needle)))
 
 (defmacro seq-contains? [haystack needle]
-  `(is-true? (some (partial = ~needle) ~haystack)))
+  `(is (some (partial = ~needle) ~haystack)))
 
-(defmacro markup-attr-exists? [widget attr value]
-  `(let [markup-maps# (filter map? ~widget)
-         merged-maps# (reduce {} merge markup-maps#)]
-    (is-true? (= (get merged-maps# ~attr) ~value))))
+(defmacro markup-attr-equal? [widget attribute-map]
+  "checks to see if a hiccup markup vector has the same attributes as the map given"
+  `(let [widget-attr-map# (first (filter map? ~widget))]
+    (is-equal? widget-attr-map# ~attribute-map)))
+
+(def alphanumeric "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890")
+(defn get-random-str [length]
+  (apply str (repeatedly length #(rand-nth alphanumeric))))
 
 ;; tests
 
@@ -36,44 +40,83 @@
 
 (deftest test-text-input
   (testing "Testing TextInput"
-    (let [field {:field-name :name
-                 :id "name"
-                 :type "text"
-                 :value "Ryan"
-                 :attributes {:data-monkey "Goat"}}
+    (let [field-name (get-random-str 10)
+          id (get-random-str 5)
+          field-type "text"
+          value (get-random-str 15)
+          attributes {:data-monkey (get-random-str 10)}
+
+          field {:field-name field-name
+                 :id id
+                 :type field-type
+                 :value value
+                 :attributes attributes}
           input (TextInput.)
-          input-markup (.markup input field)]
-      (markup-attr-exists? input-markup :name (:field-name field))
-      (markup-attr-exists? input-markup :type (:type field))
-      (markup-attr-exists? input-markup :value (:value field))
-      (markup-attr-exists? input-markup :data-monkey (:data-monkey (:attributes field)))
-      (markup-attr-exists? input-markup :id (:id field)))))
+          input-markup (.markup input field)
+          expected-attributes {:name field-name
+                               :value value
+                               :type "text"
+                               :id id
+                               :data-monkey (:data-monkey attributes)}]
+      (is-equal? (first input-markup) :input)
+      (markup-attr-equal? input-markup expected-attributes))))
 
 (deftest test-hidden-input
   (testing "Testing HiddenInput"
-    (let [field {:field-name :name
-                 :id "hidden-name"
-                 :value "Ryan"
-                 :attributes {:data-ghost "Face"}}
+    (let [field-name (get-random-str 10)
+          id (get-random-str 5)
+          value (get-random-str 15)
+          attributes {:data-monkey (get-random-str 10)}
+
+          field {:field-name field-name
+                 :id id
+                 :value value
+                 :attributes attributes}
           input (HiddenInput.)
-          input-markup (.markup input field)]
-      (markup-attr-exists? input-markup :name (:field-name field))
-      (markup-attr-exists? input-markup :type "hidden")
-      (markup-attr-exists? input-markup :value (:value field))
-      (markup-attr-exists? input-markup :data-ghost (:data-ghost (:attributes field)))
-      (markup-attr-exists? input-markup :id (:id field)))))
+          input-markup (.markup input field)
+          expected-attributes {:name field-name
+                               :value value
+                               :type "hidden"
+                               :id id
+                               :data-monkey (:data-monkey attributes)}]
+      (is-equal? (first input-markup) :input)
+      (markup-attr-equal? input-markup expected-attributes))))
 
 (deftest test-textarea
   (testing "Testing TextArea"
-    (let [field {:field-name :name
-                 :id "textarea-name"
-                 :value "Ryan"
-                 :attributes {:data-ghost "Face"}}
+    (let [field-name :name
+          id "textarea-name"
+          value "Ryan"
+          attributes {:data-ghost "Face"}
+          field {:field-name field-name
+                 :id id
+                 :value value
+                 :attributes attributes}
           input (TextArea.)
-          input-markup (.markup input field)]
-      (seq-contains? input-markup :textarea)
-      (markup-attr-exists? input-markup :name (:field-name field))
-      (markup-attr-exists? input-markup :data-ghost (:data-ghost (:attributes field)))
-      (markup-attr-exists? input-markup :id (:id field)))))
+          input-markup (.markup input field)
+          expected-attributes {:name field-name
+                               :id id
+                               :data-ghost (attributes :data-ghost)}]
+      (is-equal? (first input-markup) :textarea)
+      (markup-attr-equal? input-markup expected-attributes))))
 
-;; TODO: add tests for the remaining widgets
+;(deftest test-radio-options
+  ;(testing "Testing build-radio-options"
+    ;(let [selected-data "p"
+          ;field {:field-name "color"
+                 ;:id "color"
+                 ;:choices [["Green"  "g"]
+                           ;["Blue"   "b"]
+                           ;["Red"    "r"]
+                           ;["Purple" "p"]]}
+          ;options (widgets/build-radio-options field selected-data str (:choices field))
+          ;expected-labels [[:label {:for "color-0"} "Green"]
+                           ;[:label {:for "color-1"} "Blue"]
+                           ;[:label {:for "color-2"} "Red"]
+                           ;[:label {:for "color-3"} "Purple"]]
+          ;expected-inputs [[:input {:value 0                           ]
+
+      ;; compare the markup of the option labels
+      ;(is-equal? (map #(-> % :label .markup) options) expected-labels))))
+
+;;; TODO: add tests for the remaining widgets
