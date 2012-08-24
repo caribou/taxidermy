@@ -45,6 +45,7 @@
                            :field-name "age")
             (fields/select-field :label "Newsletter"
                           :field-name "newsletter"
+                          :multiple true
                           :choices [["Yes", 0]
                                     ["No", 1]])
             (fields/radio-field :field-name "question1" :label "Question 1"
@@ -68,6 +69,9 @@
                             :value "no")
           ])
 
+(defform multi-select
+  :fields [(fields/select-field :label "multi" :field-name "multi" :multiple true :choices [["Yes" 1] ["No" 0]])])
+
 (deftest test-defform
   (testing "Testing defform"
     (let [test-form (contact {})]
@@ -81,9 +85,12 @@
 
 (deftest test-errors
   (testing "Testing errors"
+    ; this fails the length validation
     (let [test-form (contact {:first_name "Bobsd fadsjfosidfj dofidjsf oisdfjoisf jsdoifjdsf"})
           errors (validation/validate test-form)]
+      ; check to see that we have one erro
       (is-equal? 1 (count (:first_name errors)))
+      ; check to make sure this helper func returns true
       (is (validation/has-errors? errors)))))
 
 (deftest test-minlength
@@ -112,3 +119,9 @@
 
       ; check process value
       (is (:yes processed-vals)))))
+
+(deftest test-multi-select
+  (testing "Testing multi-select"
+    (let [test-form (multi-select {})
+          select-field (:multi (:fields test-form))]
+      (str-contains? (str select-field) "multiple=\"multiple\""))))

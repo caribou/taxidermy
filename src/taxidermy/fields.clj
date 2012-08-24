@@ -29,20 +29,18 @@
     (let [widget (widgets/construct (:widget this))]
       (.render widget (assoc this :value (:data this))))))
 
-(defrecord SelectField [label field-name id choices data process-func validators attributes widget]
+(defrecord SelectField [label field-name id multiple choices data process-func validators attributes widget]
   ListBase
   (options [this]
     (let [widget (widgets/construct (:widget this))]
       (.options widget this)))
   Field
   (markup [this]
-    (let [widget (widgets/construct (:widget this))
-          choices (:choices this)]
+    (let [widget (widgets/construct (:widget this))]
       (.markup widget this)))
   Object
   (toString [this]
-    (let [widget (widgets/construct (:widget this))
-          choices (:choices this)]
+    (let [widget (widgets/construct (:widget this))]
       (.render widget this))))
 
 (defrecord RadioField [label field-name id choices data process-func validators attributes widget]
@@ -129,12 +127,12 @@
         label (Label. (or field-name id) field-label-text)]
     (TextField. label field-name id data process-func validators attributes TextArea)))
 
-(defn select-field [& {:keys [label field-name id choices data process-func validators attributes]
-                     :or {data [] validators [] process-func string-processor attributes {}}}]
+(defn select-field [& {:keys [label field-name id choices multiple data process-func validators attributes]
+                     :or {data [] validators [] multiple false process-func string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)]
-    (SelectField. label field-name id choices data process-func validators attributes Select)))
+    (SelectField. label field-name id multiple choices data process-func validators attributes Select)))
 
 (defn boolean-field [& {:keys [label field-name id data process-func validators attributes]
                      :or {data "y" process-func boolean-processor validators [] attributes {}}}]

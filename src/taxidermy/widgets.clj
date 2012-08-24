@@ -153,7 +153,8 @@
   (markup [this field]
     (let [field-name (:field-name field)
           id (or (:id field) field-name)
-          attributes (util/check-attributes (:attributes field))
+          multiple-attr (if (:multiple field) {:multiple "multiple"})
+          attributes (merge (util/check-attributes (:attributes field)) multiple-attr)
           options (:options field)]
       (conj [:select (merge {:name field-name :id id} attributes)] (map #(.markup %) options))))
   (render [this field]
