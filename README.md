@@ -37,6 +37,13 @@ Defining a form
             (fields/radio-field :field-name "question1"
                           :choices [["Yes", 1]
                                     ["No", 0]])
+            (fields/select-field :label "Multi"
+                                 :field-name "multi"
+                                 :multiple true
+                                 :choices [["A" 0]
+                                           ["B" 1]
+                                           ["C" 2]
+                                           ["D" 3]])
           ])
 ```
 
@@ -100,7 +107,6 @@ Fields respond to toString so they can be used in templates
 
 ## Todo
 
-* Multi Select
 * Button
 
 ## License
