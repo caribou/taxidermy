@@ -73,12 +73,29 @@ Fields respond to toString so they can be used in templates
 (str firstname)
 ;; => <input id="first_name" name="first_name" value="Ryan" />
 
-;; see what our dropdown looks like
+;; working with a select box
+;; direct render
 (str newsletter-dropdown)
 ;; => <select id="newsletter" name="newsletter">
 ;; => <option selected="selected" value="1">Yes</option>
 ;; =>   <option value="0">No</option>
 ;; => </select>
+
+;; iterate options (returns a seq of Records that can be used as maps
+(.options newsletter-dropdown)
+;; => [#taxidermy.widgets.Option{:config {:text "Yes", :value "1", :selected nil}} #taxidermy.widgets.Option{:config {:text "No", :value "0", :selected nil}}]
+(:value (first (.options newsletter-dropdown)))
+;; => 1
+(:text (first (.options newsletter-dropdown)))
+;; => "Yes"
+
+;; radio widgets work in a similar manner
+(.options question1)
+;; => [{:label #taxidermy.widgets.Label{:for-name "question1-0", :text "Yes"}, :input #taxidermy.widgets.RadioInput{:field-name "question1", :id "question1-0", :value 1, :checked false}} {:label #taxidermy.widgets.Label{:for-name "question1-1", :text "No"}, :input #taxidermy.widgets.RadioInput{:field-name "question1", :id "question1-1", :value 0, :checked false}}]
+(:label (first (.options question1)))
+;; => #taxidermy.widgets.Label{:for-name "question1-0", :text "Yes"}
+(:value (:input (first (.options question1))))
+;; => 1
 ```
 
 ## Todo

@@ -60,14 +60,13 @@
   (render [this field]
     (html (.markup this field))))
 
-(defrecord RadioInput [config]
+(defrecord RadioInput [field-name id value checked]
   OptionWidget
   (markup [this]
-    (let [field-name (:field-name config)
-          counter (:counter config)
-          id (:id config)
-          value (:value config)
-          checked (if (:checked config) {:checked "checked"} "")]
+    (let [field-name (:field-name this)
+          id (:id this)
+          value (:value this)
+          checked (if (:checked this) {:checked "checked"} "")]
       [:input (merge {:id id :name field-name} checked {:type "radio" :value value})]))
   (render [this]
     (html (.markup this)))
@@ -89,12 +88,11 @@
             widget-id (str base-id "-" counter)
             text (first choice)
             value (second choice)
-            input-config {:field-name (:field-name field)
-                          :counter counter
-                          :id widget-id
-                          :value value
-                          :checked (= processed-value processed-data)}
-            radio-item {:label (Label. widget-id text) :input (RadioInput. input-config)}]
+            field-name (:field-name field)
+            id widget-id
+            value value
+            checked (= processed-value processed-data)
+            radio-item {:label (Label. widget-id text) :input (RadioInput. field-name id value checked)}]
         (recur (conj radio-item-list radio-item) (inc counter) (next option-choices)))
       radio-item-list)))
 
@@ -105,16 +103,16 @@
   Widget
   (markup [this field]
     (for [option (.options this field)]
-      (list (.label option) (.button option))))
+      (list (:input option) (:label option))))
   (render [this field]
     (apply str (map #(html %) (.markup this field)))))
 
-(defrecord Option [config]
+(defrecord Option [value text selected]
   OptionWidget
   (markup [this]
-    (let [selected (if (:selected config) {:selected "selected"})
-          value (:value config)
-          text (:text config)]
+    (let [selected (if (:selected this) {:selected "selected"})
+          value (:value this)
+          text (:text this)]
       [:option (merge selected {:value value}) text]))
   (render [this]
     (html (.markup this)))
@@ -126,10 +124,8 @@
   [data process-func choice]
   (let [text (first choice)
         processed-value (process-func (second choice))
-        option-config {:text text
-                       :value processed-value
-                       :selected (some (partial = processed-value) data)}]
-    (Option. option-config)))
+        selected (some (partial = processed-value) data)]
+    (Option. processed-value text selected)))
 
 (defn build-select-options
   [field data process-func choices]
@@ -155,7 +151,7 @@
           id (or (:id field) field-name)
           multiple-attr (if (:multiple field) {:multiple "multiple"})
           attributes (merge (util/check-attributes (:attributes field)) multiple-attr)
-          options (:options field)]
+          options (.options this field)]
       (conj [:select (merge {:name field-name :id id} attributes)] (map #(.markup %) options))))
   (render [this field]
     (html (.markup this field))))
