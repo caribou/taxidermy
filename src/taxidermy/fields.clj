@@ -1,7 +1,7 @@
 (ns taxidermy.fields
   (:require [taxidermy.widgets :as widgets]
             [taxidermy.util :as util])
-  (:import [taxidermy.widgets Checkbox HiddenInput Label Option RadioList Select TextArea TextInput]))
+  (:import [taxidermy.widgets Checkbox HiddenInput Label Option RadioList Select TextArea TextInput PasswordInput]))
 
 (defprotocol Field
   (markup [this]))
@@ -9,7 +9,7 @@
 (defprotocol ListBase
   (options [this]))
 
-(defrecord TextField [label field-name id data process-func validators attributes widget]
+(defrecord TextField [label field-name id data process-func validators attributes type widget]
   Field
   (markup [this]
     (let [widget (widgets/construct (:widget this))]
@@ -19,7 +19,7 @@
     (let [widget (widgets/construct (:widget this))]
       (.render widget (assoc this :value (:data this))))))
 
-(defrecord IntegerField [label field-name id data process-func validators attributes widget]
+(defrecord IntegerField [label field-name id data process-func validators attributes type widget]
   Field
   (markup [this]
     (let [widget (widgets/construct (:widget this))]
@@ -95,21 +95,21 @@
 ;; Field constructor helpers
 ;; =====================================
 
-(defn text-field [& {:keys [label field-name id data process-func validators attributes]
-                     :or {data "" validators [] process-func string-processor attributes {}}}]
+(defn text-field [& {:keys [label field-name id data process-func validators attributes type]
+                     :or {data "" validators [] process-func string-processor attributes {} type "text"}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
         label (Label. (or field-name id) field-label-text)]
-    (TextField. label field-name id data process-func validators attributes TextInput)))
+    (TextField. label field-name id data process-func validators attributes type TextInput)))
 
-(defn integer-field [& {:keys [label field-name id data process-func validators attributes]
-                     :or {data "" validators [] process-func integer-processor attributes {}}}]
+(defn integer-field [& {:keys [label field-name id data process-func validators attributes type]
+                     :or {data "" validators [] process-func integer-processor attributes {} type "text"}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
         label (Label. (or field-name id) field-label-text)]
-    (TextField. label field-name id data process-func validators attributes TextInput)))
+    (TextField. label field-name id data process-func validators attributes type TextInput)))
 
 (defn hidden-field [& {:keys [label field-name id data process-func validators attributes]
                      :or {data "" validators [] process-func string-processor attributes {}}}]
@@ -117,7 +117,15 @@
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
         label (Label. (or field-name id) field-label-text)]
-    (TextField. label field-name id data process-func validators attributes HiddenInput)))
+    (TextField. label field-name id data process-func validators attributes "hidden" HiddenInput)))
+
+(defn password-field [& {:keys [label field-name id data process-func validators attributes]
+                     :or {data "" validators [] process-func string-processor attributes {}}}]
+  (let [field-name (name field-name)
+        field-name-kwd (keyword field-name)
+        field-label-text (or label field-name)
+        label (Label. (or field-name id) field-label-text)]
+    (TextField. label field-name id data process-func validators attributes "password" PasswordInput)))
 
 (defn textarea-field [& {:keys [label field-name id data process-func validators attributes]
                      :or {data "" validators [] process-func string-processor attributes {}}}]
@@ -125,7 +133,7 @@
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
         label (Label. (or field-name id) field-label-text)]
-    (TextField. label field-name id data process-func validators attributes TextArea)))
+    (TextField. label field-name id data process-func validators attributes "text" TextArea)))
 
 (defn select-field [& {:keys [label field-name id choices multiple data process-func validators attributes]
                      :or {data [] validators [] multiple false process-func string-processor attributes {}}}]

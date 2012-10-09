@@ -49,6 +49,17 @@
   (render [this field]
     (html (.markup this field))))
 
+(defrecord PasswordInput []
+  Widget
+  (markup [this field]
+    (let [field-name (:field-name field)
+          id (or (:id field) field-name)
+          value (:value field)
+          attributes (util/check-attributes (:attributes field))]
+      [:input (merge {:type "password" :name field-name :id id :value value} attributes)]))
+  (render [this field]
+    (html (.markup this field))))
+
 (defrecord TextArea []
   Widget
   (markup [this field]
