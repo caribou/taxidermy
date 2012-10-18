@@ -3,22 +3,14 @@
   (:require [taxidermy.util :as util]))
 
 (defprotocol Widget
-  (markup [this field-config])
-  (render [this field-config]))
-
-(defprotocol LabelWidget
-  (markup [this])
-  (render [this]))
-
-(defprotocol OptionWidget
-  (markup [this])
-  (render [this]))
+  (markup [this] [this field-config])
+  (render [this] [this field-config]))
 
 (defprotocol ListWidgetBase
   (options [this field]))
 
 (defrecord Label [for-name text]
-  LabelWidget
+  Widget
   (markup [this]
     [:label {:for for-name} (str text)])
   (render [this]
@@ -72,7 +64,7 @@
     (html (.markup this field))))
 
 (defrecord RadioInput [field-name id value checked]
-  OptionWidget
+  Widget
   (markup [this]
     (let [field-name (:field-name this)
           id (:id this)
@@ -119,7 +111,7 @@
     (apply str (map #(html %) (.markup this field)))))
 
 (defrecord Option [value text selected]
-  OptionWidget
+  Widget
   (markup [this]
     (let [selected (if (:selected this) {:selected "selected"})
           value (:value this)
