@@ -78,9 +78,12 @@
 
 (defn integer-processor
   [v]
-  (try
-    (Integer/parseInt v)
-    (catch Exception e)))
+  (if v
+    (if (= (type v) java.lang.String)
+      (try
+        (Integer. v)
+        (catch Exception e nil))
+      (.intValue v))))
 
 (defn boolean-processor
   [v]
