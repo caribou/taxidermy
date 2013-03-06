@@ -29,7 +29,7 @@
     (let [widget (widgets/construct (:widget this))]
       (.render widget (assoc this :value (:data this))))))
 
-(defrecord SelectField [label field-name id multiple choices data process-func validators attributes widget]
+(defrecord SelectField [label field-name id multiple default-choice choices data process-func validators attributes widget]
   ListBase
   (options [this]
     (let [widget (widgets/construct (:widget this))]
@@ -138,14 +138,14 @@
         label (Label. (or field-name id) field-label-text)]
     (TextField. label field-name id data process-func validators attributes "text" TextArea)))
 
-(defn select-field [& {:keys [label field-name id choices multiple data process-func validators attributes]
+(defn select-field [& {:keys [label field-name id default-choice choices multiple data process-func validators attributes]
                      :or {data [] validators [] multiple false process-func string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)]
     (if (or (every? #(and (seq? %) (= 2 (count %))) choices)
             (not-any? seq? choices))
-      (SelectField. label field-name id multiple choices data process-func validators attributes Select)
+      (SelectField. label field-name id multiple default-choice choices data process-func validators attributes Select)
       (throw (Exception. "choices must be a seq of two-item tuples or scalars")))))
 
 (defn boolean-field [& {:keys [label field-name id data process-func validators attributes]

@@ -148,7 +148,12 @@
 (defrecord Select []
   ListWidgetBase
   (options [this field]
-    (build-select-options field (:data field) (:process-func field) (:choices field)))
+    (let [default-choice (:default-choice field)
+          choices (:choices field)
+          all-choices (if (sequential? default-choice)
+                          (cons default-choice choices)
+                          choices)]
+    (build-select-options field (:data field) (:process-func field) all-choices)))
   Widget
   (markup [this field]
     (let [field-name (:field-name field)

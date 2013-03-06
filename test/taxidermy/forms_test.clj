@@ -140,17 +140,22 @@
       (is (= (:value first-option) 1))
       (is (= (:text first-option) 1))
       (is (:selected (first (filter #(= 5 (:value %)) (.options select)))))))
-  (testing "Testing tuple Select choices"
+  (testing "Testing tuple Select choices (with default)"
     (let [field-name :rating
           id "rating"
           field-data 5
           range-vals (range 1 11)
+          default-choice ["default-text" "default-value"]
           choices (map (juxt identity identity) range-vals)
           select (fields/select-field :field-name field-name
                                       :process-func fields/integer-processor
+                                      :default-choice default-choice
                                       :choices choices
                                       :data field-data)
-          first-option (first (.options select))]
+          default-option (first (.options select))
+          first-option (second (.options select))]
+      (is (= (:text default-option (first default-choice))))
+      (is (= (:value default-option (second default-choice))))
       (is (= (:value first-option) 1))
       (is (= (:text first-option) 1))
       (is (:selected (first (filter #(= 5 (:value %)) (.options select))))))))
