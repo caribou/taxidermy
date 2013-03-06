@@ -143,7 +143,10 @@
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)]
-    (SelectField. label field-name id multiple choices data process-func validators attributes Select)))
+    (if (or (every? #(and (seq? %) (= 2 (count %))) choices)
+            (not-any? seq? choices))
+      (SelectField. label field-name id multiple choices data process-func validators attributes Select)
+      (throw (Exception. "choices must be a seq of two-item tuples or scalars")))))
 
 (defn boolean-field [& {:keys [label field-name id data process-func validators attributes]
                      :or {data "y" process-func boolean-processor validators [] attributes {}}}]
@@ -159,4 +162,7 @@
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
         label (Label. (or field-name id) field-label-text)]
-    (RadioField. label field-name id choices data process-func validators attributes RadioList)))
+    (if (or (every? #(and (seq? %) (= 2 (count %))) choices)
+            (not-any? seq? choices))
+      (RadioField. label field-name id choices data process-func validators attributes RadioList)
+      (throw (Exception. "choices must be a seq of two-item tuples or scalars")))))

@@ -125,3 +125,32 @@
     (let [test-form (multi-select {})
           select-field (:multi (:fields test-form))]
       (str-contains? (str select-field) "multiple=\"multiple\""))))
+
+(deftest test-select-choices
+  (testing "Testing scalar Select choices"
+    (let [field-name :rating
+          id "rating"
+          field-data 5
+          choices (range 1 11)
+          select (fields/select-field :field-name field-name
+                                      :process-func fields/integer-processor
+                                      :choices choices
+                                      :data field-data)
+          first-option (first (.options select))]
+      (is (= (:value first-option) 1))
+      (is (= (:text first-option) 1))
+      (is (:selected (first (filter #(= 5 (:value %)) (.options select)))))))
+  (testing "Testing tuple Select choices"
+    (let [field-name :rating
+          id "rating"
+          field-data 5
+          range-vals (range 1 11)
+          choices (map (juxt identity identity) range-vals)
+          select (fields/select-field :field-name field-name
+                                      :process-func fields/integer-processor
+                                      :choices choices
+                                      :data field-data)
+          first-option (first (.options select))]
+      (is (= (:value first-option) 1))
+      (is (= (:text first-option) 1))
+      (is (:selected (first (filter #(= 5 (:value %)) (.options select))))))))

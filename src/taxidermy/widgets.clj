@@ -89,8 +89,8 @@
             processed-data (process-func data)
             processed-value (process-func (second choice))
             widget-id (str base-id "-" counter)
-            text (first choice)
-            value (second choice)
+            text (if (sequential? choice) (first choice) choice)
+            value (if (sequential? choice) (second choice) choice)
             field-name (:field-name field)
             id widget-id
             value value
@@ -125,8 +125,9 @@
 
 (defn- create-select-option
   [data process-func choice]
-  (let [text (first choice)
-        processed-value (process-func (second choice))
+  (let [text (if (sequential? choice) (first choice) choice)
+        value (if (sequential? choice) (second choice) choice)
+        processed-value (process-func value)
         selected (some (partial = processed-value) data)]
     (Option. processed-value text selected)))
 
@@ -170,7 +171,6 @@
       [:input (merge checked {:type "checkbox" :value value :name field-name :id id} attributes)]))
   (render [this field]
     (html (.markup this field))))
-
 
 (defn make-label
   [field]
