@@ -16,9 +16,13 @@
 ;; =============================================
 ;; Form validator macro
 ;; =============================================
-(defmacro field-validator [validation-func error-func]
-  `(fn [form-values# field-value#]
-    (if (not (~validation-func form-values# field-value#)) (if (fn? ~error-func) (~error-func) ~error-func))))
+(defn field-validator
+  [validation-func error-func]
+  (fn [form-values field-value]
+    (if-not (validation-func form-values field-value)
+      (if (fn? error-func)
+        (error-func)
+        error-func))))
 
 ;; =============================================
 ;; Form validation functions
