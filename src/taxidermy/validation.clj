@@ -14,7 +14,7 @@
     (some (partial = v) (map second choices))))
 
 ;; =============================================
-;; Form validator macro
+;; fn to add a validator to a form field
 ;; =============================================
 (defn field-validator
   [validation-func error-func]
