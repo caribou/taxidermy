@@ -1,4 +1,4 @@
-(defproject taxidermy "0.1.8"
+(defproject taxidermy "0.1.9"
   :description "Clojure Web Forms with Java integration"
   :license {:name "MIT"
             :url "http://copyfree.org/licenses/mit/license.txt"}

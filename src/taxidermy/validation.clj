@@ -9,6 +9,10 @@
 (defn min-length? [length]
   (fn [form-values v] (>= (count v) length)))
 
+(defn valid-choice? [choices]
+  (fn [form-values v]
+    (some (partial = v) (map second choices))))
+
 ;; =============================================
 ;; Form validator macro
 ;; =============================================

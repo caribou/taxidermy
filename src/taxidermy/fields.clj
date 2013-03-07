@@ -1,6 +1,7 @@
 (ns taxidermy.fields
   (:require [taxidermy.widgets :as widgets]
-            [taxidermy.util :as util])
+            [taxidermy.util :as util]
+            [taxidermy.validation :as validation])
   (:import [taxidermy.widgets Checkbox HiddenInput Label Option RadioList Select TextArea TextInput PasswordInput]))
 
 (defprotocol Field
@@ -142,7 +143,9 @@
                      :or {data [] validators [] multiple false process-func string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
-        field-label-text (or label field-name)]
+        field-label-text (or label field-name)
+        validation-choices (cons default-choice choices)
+        validators (cons (validation/field-validator (validation/valid-choice? validation-choices) "Invalid choice") validators)]
     (if (or (every? #(and (seq? %) (= 2 (count %))) choices)
             (not-any? seq? choices))
       (SelectField. label field-name id multiple default-choice choices data process-func validators attributes Select)

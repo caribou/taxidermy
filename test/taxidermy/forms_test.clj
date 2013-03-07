@@ -69,6 +69,10 @@
                             :value "no")
           ])
 
+(defform select
+  :fields [(fields/select-field :field-name "ghost"
+                                :choices [["Face" "1"] ["Killah" 2]])])
+
 (defform multi-select
   :fields [(fields/select-field :label "multi" :field-name "multi" :multiple true :choices [["Yes" 1] ["No" 0]])])
 
@@ -82,6 +86,12 @@
     (let [test-form (contact {:first_name "Bob"})
           errors (validation/validate test-form)]
       (is (not (validation/has-errors? errors))))))
+
+(deftest test-invalid-select-value
+  (testing "Testing invalid select value"
+    (let [test-form (select {:ghost 3})
+          errors (validation/validate test-form)]
+      (is (validation/has-errors? errors)))))
 
 (deftest test-errors
   (testing "Testing errors"
