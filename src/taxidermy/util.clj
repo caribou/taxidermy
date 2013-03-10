@@ -1,13 +1,6 @@
 (ns taxidermy.util
   (:require [clojure.string :as string]))
 
-(defn parseint
-  [v]
-  (if (not (empty? v))
-    (try
-      (Integer/parseInt v)
-      (catch Exception e nil))))
-
 (defn parse-attributes
   "converts a string of HTML attributes to a map.
   \"data-attribute=\\\"foo\\\" class=\\\"big\\\"\" => {:data-attribute \"foo\" :class \"big\"}"

@@ -60,7 +60,7 @@
                              :type "hidden"
                              :id id
                              :data-monkey (:data-monkey attributes)}
-        rendered (.render widget field)]                            
+        rendered (.render widget field)]
     (testing "Markup is :input"
       (is-equal? (first input-markup) :input))
     (testing "Rendered input"
@@ -92,14 +92,14 @@
     (testing "Attributes"
       (markup-attr-equal? input-markup expected-attributes))))
 
-(deftest test-select        
+(deftest test-select
   (let [default-choice ["Default" ""]
         choices [["Face" "1"] ["Killah" "2"]]
         select (fields/select-field :field-name "ghost"
                                     :default-choice ["Default" ""]
                                     :choices choices)
-        widget (Select.)                                    
-        options (.options widget select)]                                    
+        widget (Select.)
+        options (.options widget select)]
     (testing "Checking default choice"
       (is (= (first default-choice) (-> options first :text)))
       (is (= (second default-choice) (-> options first :value))))
@@ -107,14 +107,14 @@
       (is (= (map (juxt :text :value) (rest options)))))))
 
 (deftest test-multi-select
-  (let [multi-select (fields/select-field :label "multi" 
-                                          :field-name "multi" 
-                                          :multiple true 
+  (let [multi-select (fields/select-field :label "multi"
+                                          :field-name "multi"
+                                          :multiple true
                                           :default ["1" "2"]
                                           :choices [["A" "1"] ["B" "2"] ["C" "3"] ["D" "4"]])
         widget (Select.)
         rendered (.render widget multi-select)]
-    (testing "Ensuring the element is multiple"                                            
+    (testing "Ensuring the element is multiple"
       (str-contains? rendered "multiple=\"multiple\""))))
 
 (deftest test-select-choices
@@ -170,14 +170,14 @@
       (str-contains? rendered (str "value=\"" value "\""))
       (str-contains? rendered "selected=\"selected\""))))
 
-(deftest test-radio-input        
+(deftest test-radio-input
   (let [field-name (get-random-str 10)
         id (str field-name "-1")
         choices [["Green"  "g"]
                  ["Blue"   "b"]
                  ["Red"    "r"]
                  ["Purple" "p"]]
-        default "r"                 
+        default "r"
         radio (fields/radio-field :field-name field-name
                                   :default default
                                   :choices choices)
@@ -194,11 +194,11 @@
                  ["Blue"   "b"]
                  ["Red"    "r"]
                  ["Purple" "p"]]
-        default "r"                 
+        default "r"
         radio (fields/radio-field :field-name field-name
                                   :default default
                                   :choices choices)
-        widget (RadioList.)                                  
+        widget (RadioList.)
         options (.options widget radio)
         expected-labels [[:label {:for (str field-name "-0")} "Green"]
                          [:label {:for (str field-name "-1")} "Blue"]
@@ -208,7 +208,7 @@
         first-label-rendered (str (first labels))
         checked-options (filter (comp :checked :input) options)
         full-rendered (.render widget radio)]
-    (testing "Verify labels" 
+    (testing "Verify labels"
       (is-equal? (map #(-> % :label .markup) options) expected-labels))
     (testing "Verify rendered label"
       (str-contains? first-label-rendered (str "for=\"" field-name "-0\""))
@@ -259,7 +259,7 @@
                              :type "password"
                              :id id
                              :data-monkey (:data-monkey attributes)}
-        rendered (.render widget field)]                            
+        rendered (.render widget field)]
     (testing "Markup is :input"
       (is-equal? (first input-markup) :input))
     (testing "Rendered input"

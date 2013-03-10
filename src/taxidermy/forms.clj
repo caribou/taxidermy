@@ -1,7 +1,5 @@
 (ns taxidermy.forms
-  (:use     [taxidermy.widgets :only [make-label]])
-  (:require [taxidermy.fields :as fields]
-            [taxidermy.values :as values])
+  (:require [taxidermy.fields :as fields])
   (:import [taxidermy.fields Field]))
 
 (defprotocol BaseForm
@@ -14,42 +12,57 @@
 (defrecord Form [name]
   BaseForm
   (field [this field-name]
-    ((keyword field-name) (:fields this)))
+    (get (:fields this) (keyword field-name)))
   (widget [this field-name]
     (merge (:widget (field this field-name))))
   (render-widget [this field-name additional-attr]
-    (let [form-field (.field this field-name)]
-      (.render (:widget form-field) form-field additional-attr)))
+    (let [form-field (.field this field-name)
+          existing-attr (or (:attributes form-field) {})
+          new-attr (merge existing-attr additional-attr)]
+      (.render (:widget form-field) (assoc form-field :attributes new-attr))))
   (render-widget [this field-name]
     (.render-widget this field-name {}))
   (label [this field-name]
-    (let [field- (field this field-name)]
-      (.label field-)))
+    (get (:labels this) (keyword field-name)))
   (render-label [this field-name additional-attr]
-    (let [field- (field this field-name)]
-      (.render-label field- additional-attr)))
+    (let [label (.label this field-name)
+          label (merge label additional-attr)]
+      (.render label)))
   (render-label [this field-name]
     (.render-label this field-name {})))
 
-(defn- process-field
-  [field values]
+(defn- merge-with-values
+  [values field]
   (let [field-name (keyword (:field-name field))
-        field-value (:value field)
-        field-data (values field-name)]
-    (merge field {:original-data field-value :data field-data :value (fields/process-field field field-data)})))
+        form-data (get values field-name)]
+    (if-not (empty? values)
+      (.process field form-data)
+      field)))
 
 (defn make-form
   [form-name values & {:keys [fields] :as options}]
-  (let [fields-with-data (map #(process-field % values) fields)
+  (let [fields-with-data (map (partial merge-with-values values) fields)
         field-map (zipmap (map #(keyword (:field-name %)) fields-with-data) fields-with-data)
         label-map (zipmap (map #(keyword (:field-name %)) fields-with-data) (map :label fields-with-data))]
     (merge (Form. name) {:original-values values :fields field-map :labels label-map})))
 
 (defmacro defform [form-name & options]
-  `(defn ~form-name [values#]
-    (make-form ~(keyword form-name) values# ~@options)))
+  `(defn ~form-name
+    ([]
+      (~form-name {}))
+    ([values#]
+    (make-form ~(keyword form-name) values# ~@options))))
 
 (defn processed-values
   [form]
   (let [form-fields (:fields form)]
-    (reduce (fn [acc field-map] (assoc acc (key field-map) (:data (val field-map)))) {} form-fields)))
+    (reduce (fn [acc field-map]
+              (let [field-key (key field-map)
+                    field (val field-map)
+                    processor (:processor field)
+                    data (:data field)]
+                (assoc acc
+                       field-key
+                       (processor data))))
+              {}
+              form-fields)))

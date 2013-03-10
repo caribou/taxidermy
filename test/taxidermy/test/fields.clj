@@ -51,7 +51,7 @@
                                     :field-name field-name
                                     :default default)
         form-value default]
-                                    
+
     (testing "Checking value"
       (is-equal? (.value input) default))
     (testing "Processed value (boolean-processor)"

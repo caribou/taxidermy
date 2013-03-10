@@ -5,69 +5,67 @@
   (:import [taxidermy.widgets Checkbox HiddenInput Label Option RadioList Select TextArea TextInput PasswordInput]))
 
 (defprotocol Field
-  (markup [this]))
+  (markup [this])
+  (process [this form-data])
+  (value [this]))
 
 (defprotocol ListBase
   (options [this]))
 
-(defrecord TextField [label field-name id data process-func validators attributes type widget]
+(defrecord TextField [label field-name id default processor validators attributes type widget]
   Field
   (markup [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.markup widget this)))
+    (.markup widget this))
+  (process [this form-data]
+    (merge this {:data (processor form-data)}))
+  (value [this]
+    (or (:data this) (:default this)))
   Object
   (toString [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.render widget (assoc this :value (:data this))))))
+    (.render widget this)))
 
-(defrecord IntegerField [label field-name id data process-func validators attributes type widget]
-  Field
-  (markup [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.markup widget this)))
-  Object
-  (toString [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.render widget (assoc this :value (:data this))))))
-
-(defrecord SelectField [label field-name id multiple default-choice choices data process-func validators attributes widget]
+(defrecord SelectField [label field-name id multiple default-choice choices default processor validators attributes widget]
   ListBase
   (options [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.options widget this)))
+    (.options widget this))
   Field
   (markup [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.markup widget this)))
+    (.markup widget this))
+  (process [this form-data]
+    (merge this {:data (processor form-data)}))
+  (value [this]
+    (or (:data this) (:default this)))
   Object
   (toString [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.render widget this))))
+    (.render widget this)))
 
-(defrecord RadioField [label field-name id choices data process-func validators attributes widget]
+(defrecord RadioField [label field-name id choices default processor validators attributes widget]
   ListBase
   (options [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.options widget this)))
+    (.options widget this))
   Field
   (markup [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.markup widget this)))
+    (.markup widget this))
+  (process [this form-data]
+    (merge this {:data (processor form-data)}))
+  (value [this]
+    (or (:data this) (:default this)))
   Object
   (toString [this]
-    (let [widget (widgets/construct (:widget this))
-          choices (:choices this)]
-      (apply str (.render widget this)))))
+    (.render widget this)))
 
-(defrecord BooleanField [label field-name id data process-func validators attributes widget]
+(defrecord BooleanField [label field-name id default checked processor validators attributes widget]
   Field
   (markup [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.markup widget this)))
+    (.markup widget this))
+  (process [this form-value]
+    (let [processed-value (processor form-value)]
+      (merge this {:data processed-value})))
+  (value [this]
+    (:default this))
   Object
   (toString [this]
-    (let [widget (widgets/construct (:widget this))]
-      (.render widget this))))
+    (.render widget this)))
 
 ;; =====================================
 ;; Field processors
@@ -90,82 +88,85 @@
   [v]
   (and (not (nil? v)) (not (= "" v))))
 
-(defn process-field
-  "Utility func to execute the processor function for a field"
-  [field value]
-  ((:process-func field) value))
-
 ;; =====================================
 ;; Field constructor helpers
 ;; =====================================
 
-(defn text-field [& {:keys [label field-name id data process-func validators attributes type]
-                     :or {data "" validators [] process-func string-processor attributes {} type "text"}}]
+(defn text-field [& {:keys [label field-name id default processor validators attributes type]
+                     :or {default "" validators [] processor string-processor attributes {} type "text"}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
-        label (Label. (or field-name id) field-label-text)]
-    (TextField. label field-name id data process-func validators attributes type TextInput)))
+        label (Label. (or field-name id) field-label-text)
+        widget (TextInput.)]
+    (TextField. label field-name id default processor validators attributes type widget)))
 
-(defn integer-field [& {:keys [label field-name id data process-func validators attributes type]
-                     :or {data "" validators [] process-func integer-processor attributes {} type "text"}}]
+(defn integer-field [& {:keys [label field-name id default processor validators attributes type]
+                     :or {default "" validators [] processor integer-processor attributes {} type "text"}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
-        label (Label. (or field-name id) field-label-text)]
-    (TextField. label field-name id data process-func validators attributes type TextInput)))
+        label (Label. (or field-name id) field-label-text)
+        widget (TextInput.)]
+    (TextField. label field-name id default processor validators attributes type widget)))
 
-(defn hidden-field [& {:keys [label field-name id data process-func validators attributes]
-                     :or {data "" validators [] process-func string-processor attributes {}}}]
+(defn hidden-field [& {:keys [label field-name id default processor validators attributes]
+                     :or {default "" validators [] processor string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
-        label (Label. (or field-name id) field-label-text)]
-    (TextField. label field-name id data process-func validators attributes "hidden" HiddenInput)))
+        label (Label. (or field-name id) field-label-text)
+        widget (HiddenInput.)]
+    (TextField. label field-name id default processor validators attributes "hidden" widget)))
 
-(defn password-field [& {:keys [label field-name id data process-func validators attributes]
-                     :or {data "" validators [] process-func string-processor attributes {}}}]
+(defn password-field [& {:keys [label field-name id default processor validators attributes]
+                     :or {default "" validators [] processor string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
-        label (Label. (or field-name id) field-label-text)]
-    (TextField. label field-name id data process-func validators attributes "password" PasswordInput)))
+        label (Label. (or field-name id) field-label-text)
+        widget (PasswordInput.)]
+    (TextField. label field-name id default processor validators attributes "password" widget)))
 
-(defn textarea-field [& {:keys [label field-name id data process-func validators attributes]
-                     :or {data "" validators [] process-func string-processor attributes {}}}]
+(defn textarea-field [& {:keys [label field-name id default processor validators attributes]
+                     :or {default "" validators [] processor string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
-        label (Label. (or field-name id) field-label-text)]
-    (TextField. label field-name id data process-func validators attributes "text" TextArea)))
+        label (Label. (or field-name id) field-label-text)
+        widget (TextArea.)]
+    (TextField. label field-name id default processor validators attributes "text" widget)))
 
-(defn select-field [& {:keys [label field-name id default-choice choices multiple data process-func validators attributes]
-                     :or {data [] validators [] multiple false process-func string-processor attributes {}}}]
+(defn select-field [& {:keys [label field-name id default-choice choices multiple default processor validators attributes]
+                     :or {default [] validators [] multiple false processor string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
         validation-choices (cons default-choice choices)
-        validators (cons (validation/field-validator (validation/valid-choice? validation-choices) "Invalid choice") validators)]
-    (if (or (every? #(and (seq? %) (= 2 (count %))) choices)
-            (not-any? seq? choices))
-      (SelectField. label field-name id multiple default-choice choices data process-func validators attributes Select)
+        validators (cons (validation/field-validator (validation/valid-choice? validation-choices) "Invalid choice") validators)
+        widget (Select.)]
+    (if (or (every? #(and (coll? %) (= 2 (count %))) choices)
+            (not-any? coll? choices))
+      (SelectField. label field-name id multiple default-choice choices default processor validators attributes widget)
       (throw (Exception. "choices must be a seq of two-item tuples or scalars")))))
 
-(defn boolean-field [& {:keys [label field-name id data process-func validators attributes]
-                     :or {data "y" process-func boolean-processor validators [] attributes {}}}]
+(defn boolean-field [& {:keys [label field-name id default checked processor validators attributes]
+                     :or {default "y" checked false processor boolean-processor validators [] attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
-        label (Label. (or field-name id) field-label-text)]
-    (BooleanField. label field-name id data process-func validators attributes Checkbox)))
+        label (Label. (or field-name id) field-label-text)
+        widget (Checkbox.)]
+    (BooleanField. label field-name id default checked processor validators attributes widget)))
 
-(defn radio-field [& {:keys [label field-name id choices data process-func validators attributes]
-                     :or {data "" validators [] process-func string-processor attributes {}}}]
+(defn radio-field [& {:keys [label field-name id choices default processor validators attributes]
+                     :or {default "" validators [] processor string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
-        label (Label. (or field-name id) field-label-text)]
-    (if (or (every? #(and (seq? %) (= 2 (count %))) choices)
-            (not-any? seq? choices))
-      (RadioField. label field-name id choices data process-func validators attributes RadioList)
+        label (Label. (or field-name id) field-label-text)
+        widget (RadioList.)]
+    (if (or (every? #(and (coll? %) (= 2 (count %))) choices)
+            (not-any? coll? choices))
+      (RadioField. label field-name id choices default processor validators attributes widget)
       (throw (Exception. "choices must be a seq of two-item tuples or scalars")))))

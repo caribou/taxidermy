@@ -12,7 +12,8 @@
 (defrecord Label [for-name text]
   Widget
   (markup [this]
-    [:label {:for for-name} (str text)])
+    (let [attributes (or (:attributes this) {})]
+      [:label (merge {:for for-name} attributes) (str text)]))
   (render [this]
     (html (.markup this)))
   (toString [this]
@@ -24,7 +25,7 @@
     (let [field-name (:field-name field)
           id (or (:id field) field-name)
           type (:type field)
-          value (:value field)
+          value (.value field)
           attributes (util/check-attributes (:attributes field))]
       [:input (merge {:type type :name field-name :id id :value value} attributes)]))
   (render [this field]
@@ -35,33 +36,33 @@
   (markup [this field]
     (let [field-name (:field-name field)
           id (or (:id field) field-name)
-          value (:value field)
+          value (.value field)
           attributes (util/check-attributes (:attributes field))]
       [:input (merge {:type "hidden" :name field-name :id id :value value} attributes)]))
   (render [this field]
-    (html (.markup this field))))
+    (html (.markup field))))
 
 (defrecord PasswordInput []
   Widget
   (markup [this field]
     (let [field-name (:field-name field)
           id (or (:id field) field-name)
-          value (:value field)
+          value (or (.value field) (:default field))
           attributes (util/check-attributes (:attributes field))]
       [:input (merge {:type "password" :name field-name :id id :value value} attributes)]))
   (render [this field]
-    (html (.markup this field))))
+    (html (.markup field))))
 
 (defrecord TextArea []
   Widget
   (markup [this field]
     (let [field-name (:field-name field)
           id (or (:id field) field-name)
-          value (:value field)
+          value (or (.value field) (:default field))
           attributes (util/check-attributes (:attributes field))]
       [:textarea (merge {:name field-name :id id} attributes) value]))
   (render [this field]
-    (html (.markup this field))))
+    (html (.markup field))))
 
 (defrecord RadioInput [field-name id value checked]
   Widget
@@ -72,41 +73,36 @@
           checked (if (:checked this) {:checked "checked"} "")]
       [:input (merge {:id id :name field-name} checked {:type "radio" :value value})]))
   (render [this]
-    (html (.markup this)))
-  Object
-  (toString [this]
-    (.render this)))
+    (html (.markup this))))
 
 (defn build-radio-options
-  [field data process-func choices]
-  (loop [radio-item-list []
-         counter 0
-         option-choices choices]
-    (if option-choices
-      (let [choice (first option-choices)
-            text (first choice)
-            base-id (or (:id field) (:field-name field))
-            processed-data (process-func data)
-            processed-value (process-func (second choice))
-            widget-id (str base-id "-" counter)
-            text (if (sequential? choice) (first choice) choice)
-            value (if (sequential? choice) (second choice) choice)
-            field-name (:field-name field)
-            id widget-id
-            value value
-            checked (= processed-value processed-data)
-            radio-item {:label (Label. widget-id text) :input (RadioInput. field-name id value checked)}]
-        (recur (conj radio-item-list radio-item) (inc counter) (next option-choices)))
-      radio-item-list)))
+  [field choices]
+  (let [field-name (:field-name field)
+        field-value (.value field)]
+    (loop [radio-item-list []
+           counter 0
+           option-choices choices]
+      (if option-choices
+        (let [choice (first option-choices)
+              text (first choice)
+              base-id (or (:id field) (:field-name field))
+              widget-id (str base-id "-" counter)
+              text (if (sequential? choice) (first choice) choice)
+              value (if (sequential? choice) (second choice) choice)
+              id widget-id
+              checked (= field-value value)
+              radio-item {:label (Label. widget-id text) :input (RadioInput. field-name id value checked)}]
+          (recur (conj radio-item-list radio-item) (inc counter) (next option-choices)))
+        radio-item-list))))
 
 (defrecord RadioList []
   ListWidgetBase
   (options [this field]
-    (build-radio-options field (:data field) (:process-func field) (:choices field)))
+    (build-radio-options field (:choices field)))
   Widget
   (markup [this field]
-    (for [option (.options this field)]
-      (list (:input option) (:label option))))
+    (apply concat (for [option (.options this field)]
+                    (list (.markup (:input option)) (.markup (:label option))))))
   (render [this field]
     (apply str (map #(html %) (.markup this field)))))
 
@@ -118,30 +114,27 @@
           text (:text this)]
       [:option (merge selected {:value value}) text]))
   (render [this]
-    (html (.markup this)))
-  Object
-  (toString [this]
-    (.render this)))
+    (html (.markup this))))
 
 (defn- create-select-option
-  [data process-func choice]
-  (let [text (if (sequential? choice) (first choice) choice)
+  [field-value choice]
+  (let [field-value (if (coll? field-value)
+                        field-value
+                        (list field-value))
+        text (if (sequential? choice) (first choice) choice)
         value (if (sequential? choice) (second choice) choice)
-        processed-value (process-func value)
-        selected (some (partial = processed-value) data)]
-    (Option. processed-value text selected)))
+        selected (some (partial = value) field-value)]
+    (Option. value text selected)))
 
 (defn build-select-options
-  [field data process-func choices]
-  (let [form-data (if (seq? data) data (list data))]
+  [field choices]
+  (let [field-value (.value field)]
     (loop [option-list []
            counter 0
            option-choices choices]
       (if option-choices
         (let [choice (first option-choices)
-              base-id (or (:id field) (:field-name field))
-              widget-id (str base-id "-" counter)
-              option-item (create-select-option form-data process-func choice)]
+              option-item (create-select-option field-value choice)]
           (recur (conj option-list option-item) (inc counter) (next option-choices)))
         option-list))))
 
@@ -153,7 +146,7 @@
           all-choices (if (sequential? default-choice)
                           (cons default-choice choices)
                           choices)]
-    (build-select-options field (:data field) (:process-func field) all-choices)))
+    (build-select-options field all-choices)))
   Widget
   (markup [this field]
     (let [field-name (:field-name field)
@@ -168,20 +161,11 @@
 (defrecord Checkbox []
   Widget
   (markup [this field]
-    (let [checked (if (:data field) {:checked "checked"} {})
+    (let [checked (if (or (:data field) (:checked field)) {:checked "checked"})
           field-name (:field-name field)
-          value (:value field)
+          value (or (.value field) (:default field))
           id (or (:id field) field-name)
           attributes (util/check-attributes (:attributes field))]
-      [:input (merge checked {:type "checkbox" :value value :name field-name :id id} attributes)]))
+      [:input (merge {:type "checkbox" :value value :name field-name :id id} checked attributes)]))
   (render [this field]
     (html (.markup this field))))
-
-(defn make-label
-  [field]
-    "")
-
-(defn construct [klass & args]
-  (.newInstance
-    (.getConstructor klass (into-array java.lang.Class (map type args)))
-    (object-array args)))
