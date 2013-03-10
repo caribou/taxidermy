@@ -11,9 +11,12 @@
   (let [for-name "test-for"
         text "test-text"
         label (Label. for-name text)
-        label-markup (.markup label)]
+        label-markup (.markup label)
+        label-markup-with-attr (.markup (assoc label :attributes {:data-ghost "face"}))]
     (testing "For attribute"
       (seq-contains? label-markup {:for for-name}))
+    (testing "Extra attribute"
+      (is-equal? (get (second label-markup-with-attr) :data-ghost) "face"))
     (testing "Label text"
       (seq-contains? label-markup text))))
 
