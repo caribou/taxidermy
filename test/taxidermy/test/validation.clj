@@ -24,6 +24,7 @@
 
 (defform select
   :fields [(fields/select-field :field-name "ghost"
+                                :validators [(validation/field-validator (validation/valid-choice?) "Invalid choice.")]
                                 :choices [["One" 1]
                                           ["Two" 2]])])
 

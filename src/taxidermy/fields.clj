@@ -142,8 +142,6 @@
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
-        validation-choices (cons default-choice choices)
-        validators (cons (validation/field-validator (validation/valid-choice? validation-choices) "Invalid choice") validators)
         widget (Select.)]
     (if (or (every? #(and (coll? %) (= 2 (count %))) choices)
             (not-any? coll? choices))
