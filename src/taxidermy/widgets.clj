@@ -73,7 +73,10 @@
           checked (if (:checked this) {:checked "checked"} "")]
       [:input (merge {:id id :name field-name} checked {:type "radio" :value value})]))
   (render [this]
-    (html (.markup this))))
+    (html (.markup this)))
+  Object
+  (toString [this]
+    (.render this)))
 
 (defn build-radio-options
   [field choices]
@@ -114,7 +117,10 @@
           text (:text this)]
       [:option (merge selected {:value value}) text]))
   (render [this]
-    (html (.markup this))))
+    (html (.markup this)))
+  Object
+  (toString [this]
+    (.render this)))
 
 (defn- create-select-option
   [field-value choice]
