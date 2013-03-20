@@ -59,10 +59,9 @@
     (reduce (fn [acc field-map]
               (let [field-key (key field-map)
                     field (val field-map)
-                    processor (:processor field)
                     data (:data field)]
                 (assoc acc
                        field-key
-                       (processor data))))
+                       data)))
               {}
               form-fields)))
