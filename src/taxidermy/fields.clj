@@ -88,6 +88,13 @@
   [v]
   (and (not (nil? v)) (not (= "" v))))
 
+(defn float-processor
+  [v]
+  (if v
+    (try
+      (Float/parseFloat v)
+    (catch NumberFormatException e))))
+
 ;; =====================================
 ;; Field constructor helpers
 ;; =====================================
@@ -102,7 +109,16 @@
     (TextField. label field-name id default processor validators attributes type widget)))
 
 (defn integer-field [& {:keys [label field-name id default processor validators attributes type]
-                     :or {default "" validators [] processor integer-processor attributes {} type "text"}}]
+                        :or {default "" validators [] processor integer-processor attributes {} type "text"}}]
+  (let [field-name (name field-name)
+        field-name-kwd (keyword field-name)
+        field-label-text (or label field-name)
+        label (Label. (or field-name id) field-label-text)
+        widget (TextInput.)]
+    (TextField. label field-name id default processor validators attributes type widget)))
+
+(defn float-field [& {:keys [label field-name id default processor validators attributes type]
+                      :or {default "" validators [] processor float-processor attributes {} type "text"}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
@@ -111,7 +127,7 @@
     (TextField. label field-name id default processor validators attributes type widget)))
 
 (defn hidden-field [& {:keys [label field-name id default processor validators attributes]
-                     :or {default "" validators [] processor string-processor attributes {}}}]
+                       :or {default "" validators [] processor string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
@@ -120,7 +136,7 @@
     (TextField. label field-name id default processor validators attributes "hidden" widget)))
 
 (defn password-field [& {:keys [label field-name id default processor validators attributes]
-                     :or {default "" validators [] processor string-processor attributes {}}}]
+                         :or {default "" validators [] processor string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
@@ -129,7 +145,7 @@
     (TextField. label field-name id default processor validators attributes "password" widget)))
 
 (defn textarea-field [& {:keys [label field-name id default processor validators attributes]
-                     :or {default "" validators [] processor string-processor attributes {}}}]
+                         :or {default "" validators [] processor string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
@@ -138,7 +154,7 @@
     (TextField. label field-name id default processor validators attributes "text" widget)))
 
 (defn select-field [& {:keys [label field-name id default-choice choices multiple default processor validators attributes]
-                     :or {default [] validators [] multiple false processor string-processor attributes {}}}]
+                       :or {default [] validators [] multiple false processor string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
@@ -149,7 +165,7 @@
       (throw (Exception. "choices must be a seq of two-item tuples or scalars")))))
 
 (defn boolean-field [& {:keys [label field-name id default checked processor validators attributes]
-                     :or {default "y" checked false processor boolean-processor validators [] attributes {}}}]
+                       :or {default "y" checked false processor boolean-processor validators [] attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)
@@ -158,7 +174,7 @@
     (BooleanField. label field-name id default checked processor validators attributes widget)))
 
 (defn radio-field [& {:keys [label field-name id choices default processor validators attributes]
-                     :or {default "" validators [] processor string-processor attributes {}}}]
+                      :or {default "" validators [] processor string-processor attributes {}}}]
   (let [field-name (name field-name)
         field-name-kwd (keyword field-name)
         field-label-text (or label field-name)

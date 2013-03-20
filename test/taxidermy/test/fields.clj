@@ -71,7 +71,23 @@
     (testing "Checking value"
       (is-equal? (.value input) default))
     (testing "Processed value (integer-processor)"
-      (is-equal? (:data (.process input form-value)) (Integer/parseInt form-value)))
+      (is-equal? (:data (.process input form-value)) (fields/integer-processor form-value)))
+    (testing "Widget integration"
+      (is-equal? :input (first (.markup input)))
+      (str-contains? (str input) (str "type=\"text\"")))))
+
+(deftest test-float-field
+  (let [label (get-random-str 10)
+        field-name (get-random-str 15)
+        default 10.11
+        input (fields/float-field :label label
+                                  :field-name field-name
+                                  :default default)
+        form-value "123.11"]
+    (testing "Checking value"
+      (is-equal? (.value input) default))
+    (testing "Processed value (float-processor)"
+      (is-equal? (:data (.process input form-value)) (fields/float-processor form-value)))
     (testing "Widget integration"
       (is-equal? :input (first (.markup input)))
       (str-contains? (str input) (str "type=\"text\"")))))
